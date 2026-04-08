@@ -43,7 +43,7 @@
         </div>
         <div class="drawer-label">Day</div>
         <div class="day-pills" id="home-day-pills"></div>
-        <button class="add-btn-full" onclick="addTask()">Add task</button>
+        <button class="add-btn-full" id="add-task-btn">Add task</button>
       </div>
     </div>
 
@@ -60,10 +60,10 @@
         </div>
         <div class="drawer-label">Category</div>
         <div class="day-pills" id="cat-pills"></div>
-        <button class="add-btn-full" onclick="addGrocery()">Add to list</button>
+        <button class="add-btn-full" id="add-groc-btn">Add to list</button>
       </div>
       <div id="groceryList"></div>
-      <button class="clr-btn" onclick="clearGrocery()">Clear checked items</button>
+      <button class="clr-btn" id="clr-groc-btn">Clear checked items</button>
     </div>
 
     <div id="tab-meals" class="tab">
@@ -78,8 +78,8 @@
         <div class="drawer-label" id="mealAddLabel">Add meal</div>
         <input class="drawer-input" id="mealInput" placeholder="Meal name..."/>
         <div style="display:flex;gap:6px">
-          <button class="add-btn-full" style="flex:1" onclick="confirmMeal()">Add</button>
-          <button class="add-btn-full" style="background:var(--stone);color:var(--bark);border:.5px solid var(--pebble);flex:1" onclick="closeMealPanel()">Cancel</button>
+          <button class="add-btn-full" style="flex:1" id="confirm-meal-btn">Add</button>
+          <button class="add-btn-full" style="background:var(--stone);color:var(--bark);border:.5px solid var(--pebble);flex:1" id="cancel-meal-btn">Cancel</button>
         </div>
       </div>
     </div>
@@ -96,7 +96,7 @@
         </div>
         <div class="drawer-label">Priority</div>
         <div class="day-pills" id="pri-pills"></div>
-        <button class="add-btn-full" onclick="addMaint()">Add task</button>
+        <button class="add-btn-full" id="add-maint-btn">Add task</button>
       </div>
       <div class="sec-label">Open tasks</div>
       <div id="maintList"></div>
