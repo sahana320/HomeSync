@@ -26,6 +26,16 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6;}
 
+/* password screen */
+#password-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10001;gap:12px;}
+.pw-sub{font-size:14px;color:var(--ink-muted);margin-bottom:4px;}
+.pw-box{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
+.pw-input{padding:12px 16px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:15px;font-family:var(--font-body);background:var(--white);color:var(--ink);outline:none;transition:border-color .15s;}
+.pw-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(124,154,126,.12);}
+.pw-btn{padding:12px;background:var(--sage-dark);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--font-body);}
+.pw-btn:hover{background:var(--sage);}
+.pw-error{font-size:13px;color:var(--red);text-align:center;}
+
 /* loading */
 #loading-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;gap:16px;}
 .loading-logo{font-family:var(--font-display);font-size:36px;color:var(--sage-dark);}
@@ -139,15 +149,15 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .sched-day-name{font-weight:600;font-size:13px;}
 .sched-day-add{font-size:11px;color:var(--sage-dark);cursor:pointer;font-weight:600;border:1px solid var(--sage);background:var(--sage-light);padding:2px 8px;border-radius:6px;}
 .sched-day-add:hover{background:var(--sage);color:white;}
-.sched-task{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;}
+.sched-task{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);}
 .sched-task:last-child{border-bottom:none;}
 .sched-task-check{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;margin-top:3px;cursor:pointer;}
 .sched-task-check.done{background:var(--sage);border-color:var(--sage);}
-.sched-task-info{flex:1;min-width:0;overflow:hidden;}
-.sched-task-name{color:var(--ink);white-space:normal;word-break:normal;overflow-wrap:break-word;line-height:1.4;}
+.sched-task-info{flex:1;min-width:0;}
+.sched-task-name{font-size:13px;color:var(--ink);line-height:1.4;margin-bottom:5px;}
 .sched-task-name.struck{text-decoration:line-through;color:var(--ink-muted);}
-.sched-task-actions{display:flex;gap:2px;flex-shrink:0;align-items:flex-start;padding-top:1px;}
-.sched-task-btn{padding:2px 7px;border-radius:4px;font-size:11px;cursor:pointer;border:none;font-family:var(--font-body);white-space:nowrap;}
+.sched-task-actions{display:flex;gap:4px;margin-top:4px;}
+.sched-task-btn{width:26px;height:26px;border-radius:6px;font-size:13px;cursor:pointer;border:none;font-family:var(--font-body);display:inline-flex;align-items:center;justify-content:center;}
 .sched-edit-btn{background:var(--amber-light);color:var(--amber-dark);}
 .sched-del-btn{background:var(--red-light);color:var(--red);}
 .sched-empty{padding:16px 14px;font-size:13px;color:var(--ink-muted);font-style:italic;}
@@ -212,7 +222,17 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 </head>
 <body>
 
-<div id="loading-screen">
+<div id="password-screen">
+  <div class="loading-logo">🏡 HomeSync</div>
+  <div class="pw-sub">Enter your household password to continue</div>
+  <div class="pw-box">
+    <input type="password" id="pw-input" class="pw-input" placeholder="Password" />
+    <div id="pw-error" class="pw-error" style="display:none">Incorrect password — try again</div>
+    <button class="pw-btn" id="pw-btn">Unlock</button>
+  </div>
+</div>
+
+<div id="loading-screen" style="display:none">
   <div class="loading-logo">🏡 HomeSync</div>
   <div class="loading-spinner"></div>
   <div class="loading-sub" id="loading-sub">Connecting to your household...</div>
@@ -812,11 +832,11 @@ function renderSchedule() {
             <div class="sched-task-check${t.status==="done"?" done":""}" data-id="${t.id}" data-status="${t.status}"></div>
             <div class="sched-task-info">
               <div class="sched-task-name${t.status==="done"?" struck":""}">${t.title}${t.carriedOver?`<span class="co-pill">last week</span>`:""}</div>
-              <div style="margin-top:3px">${wb(t.who||t.assignee)}</div>
-            </div>
-            <div class="sched-task-actions">
-              <button class="sched-task-btn sched-edit-btn" data-id="${t.id}">Edit</button>
-              <button class="sched-task-btn sched-del-btn"  data-id="${t.id}">Del</button>
+              <div style="margin-bottom:4px">${wb(t.who||t.assignee)}</div>
+              <div class="sched-task-actions">
+                <button class="sched-task-btn sched-edit-btn" data-id="${t.id}" title="Edit">✏️</button>
+                <button class="sched-task-btn sched-del-btn"  data-id="${t.id}" title="Delete">✕</button>
+              </div>
             </div>
           </div>`).join("") || `<div class="sched-empty">Rest day</div>`}
       </div>
@@ -973,8 +993,48 @@ function showCarryoverBanner(tasks) {
     tasks.map(t => `<span class="co-tag">${t.title} · ${t.who}</span>`).join(" ");
 }
 
-// ── Go ────────────────────────────────────────────────────────────────────────
-init();
+// ── Password gate ─────────────────────────────────────────────────────────────
+const CORRECT_PASSWORD = "TheGunduM@ri$"; // 👈 change this to whatever you want
+
+function checkPassword() {
+  const stored = sessionStorage.getItem("hs_auth");
+  if (stored === CORRECT_PASSWORD) {
+    document.getElementById("password-screen").style.display = "none";
+    document.getElementById("loading-screen").style.display  = "flex";
+    init();
+  }
+}
+
+function setupPasswordScreen() {
+  const btn   = document.getElementById("pw-btn");
+  const input = document.getElementById("pw-input");
+  const error = document.getElementById("pw-error");
+
+  function attempt() {
+    if (input.value === CORRECT_PASSWORD) {
+      sessionStorage.setItem("hs_auth", CORRECT_PASSWORD);
+      document.getElementById("password-screen").style.display = "none";
+      document.getElementById("loading-screen").style.display  = "flex";
+      init();
+    } else {
+      error.style.display = "block";
+      input.value = "";
+      input.focus();
+      input.style.borderColor = "var(--red)";
+      setTimeout(() => { input.style.borderColor = ""; }, 1500);
+    }
+  }
+
+  btn.addEventListener("click", attempt);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") attempt(); });
+  input.focus();
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+checkPassword();
+if (document.getElementById("password-screen").style.display !== "none") {
+  setupPasswordScreen();
+}
 </script>
 </body>
 </html>
