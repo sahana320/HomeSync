@@ -1,30 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HomeSync</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="manifest" href="manifest.json"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HomeSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sage:#7C9A7E;--sage-light:#EEF4EE;--sage-dark:#3D5C3F;
+  --clay:#C4785A;--clay-light:#FAF0EB;--clay-dark:#8B4A30;
+  --sky:#6A9AB8;--sky-light:#E4EFF5;--sky-dark:#2F5E7A;
+  --cream:#FAF8F4;--white:#FFFFFF;
+  --ink:#1C1C1A;--ink-soft:#4A4A46;--ink-muted:#8A8A84;
+  --border:#E8E4DC;--border-strong:#C8C4BC;
+  --amber:#C9A84C;--amber-light:#FBF6EA;--amber-dark:#7A5A10;
+  --red:#A85A5A;--red-light:#FAF0F0;
+  --success:#5A8A5C;--success-bg:#EEF6EE;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 2px 12px rgba(28,28,26,.07),0 1px 3px rgba(28,28,26,.05);
+  --shadow-lg:0 8px 32px rgba(28,28,26,.10),0 2px 8px rgba(28,28,26,.06);
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6;}
+
+/* loading */
+#loading-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;gap:16px;}
+.loading-logo{font-family:var(--font-display);font-size:36px;color:var(--sage-dark);}
+.loading-sub{font-size:14px;color:var(--ink-muted);}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--sage-dark);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* sync */
+#sync-status{position:fixed;bottom:20px;right:20px;z-index:500;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:13px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-muted);flex-shrink:0;}
+.sync-dot.live{background:var(--success);animation:pulse 2s infinite;}
+.sync-dot.saving{background:var(--amber);}
+.sync-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* nav */
+.nav{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;height:60px;}
+.nav-logo{font-family:var(--font-display);font-size:22px;color:var(--sage-dark);margin-right:auto;}
+.nav-tabs{display:flex;gap:2px;}
+.nav-tab{padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-soft);border:none;background:none;font-family:var(--font-body);transition:all .15s;}
+.nav-tab:hover{background:var(--sage-light);color:var(--sage-dark);}
+.nav-tab.active{background:var(--sage-light);color:var(--sage-dark);font-weight:600;}
+
+/* pages */
+.page{display:none;max-width:1200px;margin:0 auto;padding:36px 24px 80px;}
+.page.active{display:block;}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:var(--font-display);font-size:36px;color:var(--ink);line-height:1.2;}
+.page-subtitle{color:var(--ink-muted);margin-top:6px;font-size:15px;}
+
+/* grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr;}.grid-4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.grid-3,.grid-4{grid-template-columns:1fr;}.page{padding:20px 16px 60px;}.nav-tab{padding:8px 10px;font-size:12px;}}
+
+/* cards */
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:24px;box-shadow:var(--shadow);}
+.card-title{font-family:var(--font-display);font-size:18px;color:var(--ink);margin-bottom:16px;}
+.stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:20px 22px;box-shadow:var(--shadow);}
+.stat-num{font-family:var(--font-display);font-size:34px;color:var(--sage-dark);line-height:1;}
+.stat-label{font-size:13px;color:var(--ink-muted);margin-top:6px;}
+.stat-sub{font-size:12px;color:var(--sage);margin-top:4px;font-weight:500;}
+.chip-s-card{border-left:3px solid var(--clay);}
+.chip-r-card{border-left:3px solid var(--sky);}
+
+/* section label */
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-muted);font-weight:600;margin-bottom:12px;}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--white);color:var(--ink);font-family:var(--font-body);transition:all .15s;}
+.btn:hover{background:var(--sage-light);border-color:var(--sage);color:var(--sage-dark);}
+.btn-primary{background:var(--sage-dark);color:white;border-color:var(--sage-dark);}
+.btn-primary:hover{background:var(--sage);border-color:var(--sage);color:white;}
+.btn-danger{color:var(--red);border:none;background:transparent;padding:4px 8px;font-size:13px;font-family:var(--font-body);cursor:pointer;}
+.btn-danger:hover{background:var(--red-light);}
+.btn-sm{padding:6px 12px;font-size:13px;}
+
+/* forms */
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:500;color:var(--ink-soft);margin-bottom:6px;}
+.form-input,.form-select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-body);background:var(--white);color:var(--ink);transition:border-color .15s;}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--sage);box-shadow:0 0 0 3px rgba(124,154,126,.12);}
+
+/* who toggle */
+.who-toggle{display:flex;gap:6px;margin-bottom:4px;}
+.wt-btn{flex:1;padding:8px 6px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--white);color:var(--ink-soft);font-size:13px;font-weight:500;cursor:pointer;text-align:center;font-family:var(--font-body);transition:all .15s;}
+.wt-btn:hover{background:var(--sage-light);}
+.wt-s{background:var(--clay-light);border-color:var(--clay);color:var(--clay-dark);}
+.wt-r{background:var(--sky-light);border-color:var(--sky);color:var(--sky-dark);}
+.wt-b{background:var(--sage-light);border-color:var(--sage);color:var(--sage-dark);}
+
+/* pills */
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.pill{padding:5px 12px;border-radius:20px;border:1px solid var(--border-strong);background:var(--white);color:var(--ink-soft);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);transition:all .15s;}
+.pill:hover{background:var(--sage-light);}
+.pill.active{background:var(--sage-dark);border-color:var(--sage-dark);color:white;}
+
+/* who badge */
+.who-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.wb-s{background:var(--clay-light);color:var(--clay-dark);}
+.wb-r{background:var(--sky-light);color:var(--sky-dark);}
+.wb-b{background:var(--sage-light);color:var(--sage-dark);}
+
+/* progress */
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--sage-dark));border-radius:4px;transition:width .4s ease;}
+
+/* carryover */
+.co-banner{background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:24px;font-size:14px;color:var(--amber-dark);line-height:1.7;}
+.co-tag{display:inline-block;background:rgba(0,0,0,.06);border-radius:4px;font-size:12px;padding:1px 8px;margin:2px 3px 0 0;}
+.co-pill{font-size:10px;background:var(--amber);color:white;border-radius:4px;padding:1px 6px;margin-left:6px;}
+
+/* task rows */
+.task-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.task-row:last-child{border-bottom:none;}
+.task-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;cursor:pointer;transition:all .15s;}
+.task-check.done{background:var(--sage);border-color:var(--sage);}
+.task-name{flex:1;font-size:14px;}
+.task-name.struck{text-decoration:line-through;color:var(--ink-muted);}
+
+/* schedule */
+.sched-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;}
+@media(max-width:1000px){.sched-week-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.sched-week-grid{grid-template-columns:1fr;}}
+.sched-day{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+.sched-day-hdr{background:var(--cream);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.sched-day-name{font-weight:600;font-size:13px;}
+.sched-day-add{font-size:11px;color:var(--sage-dark);cursor:pointer;font-weight:600;border:1px solid var(--sage);background:var(--sage-light);padding:2px 8px;border-radius:6px;}
+.sched-day-add:hover{background:var(--sage);color:white;}
+.sched-task{display:flex;align-items:flex-start;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+.sched-task:last-child{border-bottom:none;}
+.sched-task-check{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;margin-top:2px;cursor:pointer;}
+.sched-task-check.done{background:var(--sage);border-color:var(--sage);}
+.sched-task-info{flex:1;min-width:0;}
+.sched-task-name{color:var(--ink);word-break:break-word;}
+.sched-task-name.struck{text-decoration:line-through;color:var(--ink-muted);}
+.sched-task-actions{display:flex;gap:2px;flex-shrink:0;}
+.sched-task-btn{padding:2px 7px;border-radius:4px;font-size:11px;cursor:pointer;border:none;font-family:var(--font-body);}
+.sched-edit-btn{background:var(--amber-light);color:var(--amber-dark);}
+.sched-del-btn{background:var(--red-light);color:var(--red);}
+.sched-empty{padding:16px 14px;font-size:13px;color:var(--ink-muted);font-style:italic;}
+
+/* grocery */
+.groc-section{font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;padding:14px 0 6px;}
+.groc-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:14px;}
+.groc-row:last-child{border-bottom:none;}
+.groc-row.ck span{text-decoration:line-through;color:var(--ink-muted);}
+.groc-row.ck .groc-check{background:var(--sage);border-color:var(--sage);}
+.groc-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border-strong);flex-shrink:0;}
+.groc-qty{margin-left:auto;font-size:13px;color:var(--ink-muted);}
+
+/* meals */
+.meal-legend{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:14px;color:var(--ink-soft);}
+.meal-pill{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;}
+.mp-b{background:var(--sky-light);color:var(--sky-dark);}
+.mp-l{background:var(--sage-light);color:var(--sage-dark);}
+.mp-d{background:var(--clay-light);color:var(--clay-dark);}
+.meal-table{display:flex;flex-direction:column;gap:6px;}
+.meal-row{display:grid;grid-template-columns:100px 1fr 1fr 1fr;gap:8px;align-items:center;}
+@media(max-width:600px){.meal-row{grid-template-columns:70px 1fr 1fr 1fr;}}
+.meal-day-lbl{font-size:13px;font-weight:600;color:var(--ink-soft);}
+.mc{font-size:13px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid transparent;}
+.mc:hover{opacity:.8;}
+.mc-b{background:var(--sky-light);color:var(--sky-dark);border-color:#B5D4E8;}
+.mc-l{background:var(--sage-light);color:var(--sage-dark);border-color:#B8CEB0;}
+.mc-d{background:var(--clay-light);color:var(--clay-dark);border-color:#DFBBA8;}
+.mc-e{font-size:13px;padding:8px 10px;border-radius:var(--radius-sm);border:1px dashed var(--border-strong);color:var(--ink-muted);cursor:pointer;text-align:center;transition:all .15s;}
+.mc-e:hover{background:var(--sage-light);border-color:var(--sage);color:var(--sage-dark);}
+
+/* maintenance */
+.maint-section-hdr{font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 10px;}
+.maint-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.maint-row:last-child{border-bottom:none;}
+.maint-row.done-row .maint-title{text-decoration:line-through;color:var(--ink-muted);}
+.maint-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border-strong);flex-shrink:0;}
+.maint-check.done{background:var(--sage);border-color:var(--sage);}
+.maint-info{flex:1;}
+.maint-title{font-size:14px;color:var(--ink);}
+.maint-meta{font-size:12px;color:var(--ink-muted);margin-top:2px;display:flex;align-items:center;gap:8px;}
+.pri-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pri-1{background:var(--clay);}
+.pri-2{background:var(--amber);}
+.pri-3{background:var(--border-strong);}
+
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(28,28,26,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius);padding:28px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
+.modal-title{font-family:var(--font-display);font-size:22px;margin-bottom:20px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+/* empty */
+.empty-state{text-align:center;padding:40px 20px;color:var(--ink-muted);}
+.empty-state-text{font-size:14px;}
+
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
+</style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div id="loading-screen">
   <div class="loading-logo">🏡 HomeSync</div>
   <div class="loading-spinner"></div>
-  <div class="loading-sub">Loading your household...</div>
+  <div class="loading-sub" id="loading-sub">Connecting to your household...</div>
 </div>
 
-<!-- Sync status -->
 <div id="sync-status">
   <div class="sync-dot" id="sync-dot"></div>
   <span id="sync-text">Connecting...</span>
 </div>
 
-<!-- Nav -->
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-logo">🏡 HomeSync</div>
@@ -38,44 +235,23 @@
   </div>
 </nav>
 
-<!-- ===== DASHBOARD ===== -->
+<!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="page-header">
     <div class="page-title">Good morning, Sahana & Raman 👋</div>
     <div class="page-subtitle" id="dash-date"></div>
   </div>
-
   <div id="carryover-banner" class="co-banner" style="display:none"></div>
-
   <div class="grid-4" style="margin-bottom:28px">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-done">0%</div>
-      <div class="stat-label">This week</div>
-      <div class="stat-sub" id="stat-done-sub">0 of 0 done</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-today">0</div>
-      <div class="stat-label">Today's tasks</div>
-      <div class="stat-sub" id="stat-today-sub">remaining</div>
-    </div>
-    <div class="stat-card chip-s-card">
-      <div class="stat-num" style="font-size:20px">Sahana</div>
-      <div class="stat-label">Set A this week</div>
-      <div class="stat-sub" id="stat-sahana-ct">— tasks</div>
-    </div>
-    <div class="stat-card chip-r-card">
-      <div class="stat-num" style="font-size:20px">Raman</div>
-      <div class="stat-label">Set B this week</div>
-      <div class="stat-sub" id="stat-raman-ct">— tasks</div>
-    </div>
+    <div class="stat-card"><div class="stat-num" id="stat-done">0%</div><div class="stat-label">This week</div><div class="stat-sub" id="stat-done-sub">0 of 0 done</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-today">0</div><div class="stat-label">Today's tasks</div><div class="stat-sub" id="stat-today-sub">remaining</div></div>
+    <div class="stat-card chip-s-card"><div class="stat-num" style="font-size:20px">Sahana</div><div class="stat-label">Set A this week</div><div class="stat-sub" id="stat-sahana-ct">—</div></div>
+    <div class="stat-card chip-r-card"><div class="stat-num" style="font-size:20px">Raman</div><div class="stat-label">Set B this week</div><div class="stat-sub" id="stat-raman-ct">—</div></div>
   </div>
-
   <div class="grid-2">
     <div>
       <div class="section-label">Today's tasks</div>
-      <div class="card" id="today-list" style="padding:8px 20px">
-        <div class="empty-state"><div class="empty-state-text">Loading...</div></div>
-      </div>
+      <div class="card" id="today-list" style="padding:8px 20px"><div class="empty-state"><div class="empty-state-text">Loading...</div></div></div>
     </div>
     <div>
       <div class="section-label">Weekly progress</div>
@@ -85,25 +261,16 @@
       </div>
       <div class="section-label" style="margin-top:20px">Quick add task</div>
       <div class="card">
-        <div class="form-group">
-          <label class="form-label">Task name</label>
-          <input type="text" class="form-input" id="quick-title" placeholder="e.g. Clean the oven"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Assign to</label>
-          <div class="who-toggle" id="quick-who-toggle"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Day</label>
-          <div class="pill-row" id="quick-day-pills"></div>
-        </div>
+        <div class="form-group"><label class="form-label">Task name</label><input type="text" class="form-input" id="quick-title" placeholder="e.g. Clean the oven"/></div>
+        <div class="form-group"><label class="form-label">Assign to</label><div class="who-toggle" id="quick-who-toggle"></div></div>
+        <div class="form-group"><label class="form-label">Day</label><div class="pill-row" id="quick-day-pills"></div></div>
         <button class="btn btn-primary" id="quick-add-btn">Add task</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== SCHEDULE ===== -->
+<!-- SCHEDULE -->
 <div id="page-schedule" class="page">
   <div class="page-header">
     <div class="page-title">Weekly Schedule</div>
@@ -112,11 +279,11 @@
   <div id="sched-grid" class="sched-week-grid"></div>
 </div>
 
-<!-- ===== GROCERY ===== -->
+<!-- GROCERY -->
 <div id="page-grocery" class="page">
   <div class="page-header">
     <div class="page-title">Shopping List</div>
-    <div class="page-subtitle" id="groc-subtitle"></div>
+    <div class="page-subtitle" id="groc-subtitle">0 items remaining</div>
   </div>
   <div class="grid-2">
     <div>
@@ -127,25 +294,16 @@
     <div>
       <div class="section-label">Add an item</div>
       <div class="card">
-        <div class="form-group">
-          <label class="form-label">Item name</label>
-          <input type="text" class="form-input" id="gn" placeholder="e.g. Sourdough bread"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Quantity</label>
-          <input type="text" class="form-input" id="gq" placeholder="e.g. 2 bags"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          <div class="pill-row" id="cat-pills"></div>
-        </div>
+        <div class="form-group"><label class="form-label">Item name</label><input type="text" class="form-input" id="gn" placeholder="e.g. Sourdough bread"/></div>
+        <div class="form-group"><label class="form-label">Quantity</label><input type="text" class="form-input" id="gq" placeholder="e.g. 2 bags"/></div>
+        <div class="form-group"><label class="form-label">Category</label><div class="pill-row" id="cat-pills"></div></div>
         <button class="btn btn-primary" id="add-groc-btn">Add to list</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== MEALS ===== -->
+<!-- MEALS -->
 <div id="page-meals" class="page">
   <div class="page-header">
     <div class="page-title">Meal Planner</div>
@@ -160,9 +318,7 @@
   <div id="meal-grid" class="meal-table"></div>
   <div class="card" id="meal-add-panel" style="display:none;max-width:420px;margin-top:20px">
     <div class="card-title" id="meal-add-label">Add meal</div>
-    <div class="form-group">
-      <input type="text" class="form-input" id="meal-input" placeholder="e.g. Chicken stir fry"/>
-    </div>
+    <div class="form-group"><input type="text" class="form-input" id="meal-input" placeholder="e.g. Chicken stir fry"/></div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-primary" id="confirm-meal-btn" style="flex:1">Add</button>
       <button class="btn" id="cancel-meal-btn" style="flex:1">Cancel</button>
@@ -170,64 +326,40 @@
   </div>
 </div>
 
-<!-- ===== MAINTENANCE ===== -->
+<!-- MAINTENANCE -->
 <div id="page-maintenance" class="page">
   <div class="page-header">
     <div class="page-title">Home Tasks</div>
     <div class="page-subtitle">Maintenance, kids & pets, and more</div>
   </div>
   <div class="grid-2">
-    <div>
-      <div id="maint-list"></div>
-    </div>
+    <div><div id="maint-list"></div></div>
     <div>
       <div class="section-label">Add a task</div>
       <div class="card">
-        <div class="form-group">
-          <label class="form-label">Task name</label>
-          <input type="text" class="form-input" id="mn" placeholder="e.g. Fix leaky tap"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Assign to</label>
-          <div class="who-toggle" id="maint-who-toggle"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Priority</label>
-          <div class="pill-row" id="pri-pills"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Due date (optional)</label>
-          <input type="date" class="form-input" id="maint-due"/>
-        </div>
+        <div class="form-group"><label class="form-label">Task name</label><input type="text" class="form-input" id="mn" placeholder="e.g. Fix leaky tap"/></div>
+        <div class="form-group"><label class="form-label">Assign to</label><div class="who-toggle" id="maint-who-toggle"></div></div>
+        <div class="form-group"><label class="form-label">Priority</label><div class="pill-row" id="pri-pills"></div></div>
+        <div class="form-group"><label class="form-label">Due date (optional)</label><input type="date" class="form-input" id="maint-due"/></div>
         <button class="btn btn-primary" id="add-maint-btn">Add task</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== SCHEDULE MODALS ===== -->
+<!-- MODALS -->
 <div class="modal-overlay" id="modal-add-task">
   <div class="modal">
     <div class="modal-title">Add task</div>
-    <div class="form-group">
-      <label class="form-label">Task name</label>
-      <input type="text" class="form-input" id="modal-task-title" placeholder="e.g. Vacuum bedroom"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Day</label>
+    <div class="form-group"><label class="form-label">Task name</label><input type="text" class="form-input" id="modal-task-title" placeholder="e.g. Vacuum bedroom"/></div>
+    <div class="form-group"><label class="form-label">Day</label>
       <select class="form-select" id="modal-task-day">
         <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
         <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">Assign to</label>
-      <div class="who-toggle" id="modal-who-toggle"></div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Est. minutes</label>
-      <input type="number" class="form-input" id="modal-task-mins" placeholder="20" value="20"/>
-    </div>
+    <div class="form-group"><label class="form-label">Assign to</label><div class="who-toggle" id="modal-who-toggle"></div></div>
+    <div class="form-group"><label class="form-label">Est. minutes</label><input type="number" class="form-input" id="modal-task-mins" value="20"/></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-add-task')">Cancel</button>
       <button class="btn btn-primary" id="modal-save-task-btn">Add task</button>
@@ -238,22 +370,14 @@
 <div class="modal-overlay" id="modal-edit-task">
   <div class="modal">
     <div class="modal-title">Edit task</div>
-    <div class="form-group">
-      <label class="form-label">Task name</label>
-      <input type="text" class="form-input" id="edit-task-title"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Move to day</label>
+    <div class="form-group"><label class="form-label">Task name</label><input type="text" class="form-input" id="edit-task-title"/></div>
+    <div class="form-group"><label class="form-label">Move to day</label>
       <select class="form-select" id="edit-task-day">
         <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
         <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">Assign to</label>
-      <div class="who-toggle" id="edit-who-toggle"></div>
-    </div>
-    <input type="hidden" id="edit-task-id"/>
+    <div class="form-group"><label class="form-label">Assign to</label><div class="who-toggle" id="edit-who-toggle"></div></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-edit-task')">Cancel</button>
       <button class="btn btn-primary" id="modal-update-task-btn">Save changes</button>
@@ -261,6 +385,595 @@
   </div>
 </div>
 
-<script type="module" src="app.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+// ── Firebase config ───────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyC_Ij-1u7tGSmU30CjZUEpNFjj6ZdDAtls",
+  authDomain: "householdsync-c18e2.firebaseapp.com",
+  projectId: "householdsync-c18e2",
+  storageBucket: "householdsync-c18e2.firebasestorage.app",
+  messagingSenderId: "724899324379",
+  appId: "1:724899324379:web:b72ebdbf2c7a55379407fe",
+  measurementId: "G-PKNG4N08B2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const CATS = ["Produce","Dairy","Meat","Pantry","Frozen","Other"];
+const NA   = "Sahana";
+const NB   = "Raman";
+const HID  = "home";
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let quickWho = NA, quickDay = "Monday";
+let maintWho = NA, maintPri = 2;
+let selCat   = "Produce";
+let modalWho = NA, editModalWho = NA;
+let editingTaskId = null;
+let pendingMeal   = { date:null, type:null, day:null };
+let tasksCache = {}, mealsCache = {};
+
+// ── Week helpers ──────────────────────────────────────────────────────────────
+function weekYear(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const w = Math.ceil((((d - y) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(w).padStart(2,"0")}`;
+}
+
+function prevWeekYear() {
+  const d = new Date(); d.setDate(d.getDate() - 7); return weekYear(d);
+}
+
+function rotationSide() {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - y) / 86400000) + 1) / 7) % 2;
+}
+
+const week = weekYear();
+
+function buildWeekTasks(nameA, nameB, side) {
+  const A = side === 0 ? nameA : nameB;
+  const B = side === 0 ? nameB : nameA;
+  const T = [
+    ["Monday","Vacuum living room","chores","A",20],
+    ["Monday","Wipe kitchen counters","chores","B",10],
+    ["Monday","Kids' school bags packed","kids_pets","S",10],
+    ["Tuesday","Clean bathroom sink","chores","A",15],
+    ["Tuesday","Take out recycling","chores","B",10],
+    ["Tuesday","Pet feeding & water","kids_pets","B",10],
+    ["Wednesday","Mop kitchen floor","chores","A",20],
+    ["Wednesday","Laundry (wash + dry)","chores","B",60],
+    ["Wednesday","Review grocery list","chores","S",10],
+    ["Thursday","Fold & put away laundry","chores","A",30],
+    ["Thursday","Dust surfaces","chores","A",15],
+    ["Thursday","Clean toilet & shower","chores","B",20],
+    ["Friday","Tidy living spaces","chores","A",20],
+    ["Friday","Grocery shopping","chores","B",45],
+    ["Friday","Kids' weekend plan","kids_pets","S",15],
+    ["Saturday","Yard / outdoor tidy","maintenance","A",30],
+    ["Saturday","Meal prep for week","chores","B",60],
+    ["Sunday","Change bed sheets","chores","A",20],
+    ["Sunday","Plan next week meals","chores","S",15],
+  ];
+  return T.map(([day,title,category,set,mins]) => ({
+    title, category, day,
+    who:      set==="A" ? A : set==="B" ? B : "Both",
+    assignee: set==="A" ? A : set==="B" ? B : "Both",
+    status:"pending", weekYear:week, carriedOver:false, estimatedMins:mins, notes:""
+  }));
+}
+
+// ── Sync UI ───────────────────────────────────────────────────────────────────
+function setSyncStatus(state, text) {
+  const dot = document.getElementById("sync-dot");
+  const txt = document.getElementById("sync-text");
+  if (dot) dot.className = "sync-dot " + state;
+  if (txt) txt.textContent = text;
+}
+
+function hideLoading() {
+  const el = document.getElementById("loading-screen");
+  if (!el) return;
+  el.style.opacity = "0";
+  el.style.transition = "opacity .5s";
+  setTimeout(() => el.remove(), 500);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+async function init() {
+  setSyncStatus("saving", "Connecting...");
+  document.getElementById("loading-sub").textContent = "Connecting to your household...";
+
+  try {
+    // Ensure household doc exists — use merge so we never overwrite
+    await setDoc(doc(db, "households", HID), { nameA: NA, nameB: NB }, { merge: true });
+
+    // Seed tasks if this is a new week
+    const snap = await getDocs(
+      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
+    );
+    if (snap.empty) {
+      document.getElementById("loading-sub").textContent = "Setting up this week's tasks...";
+      const tasks = buildWeekTasks(NA, NB, rotationSide());
+      const batch = writeBatch(db);
+      tasks.forEach(t => {
+        const r = doc(collection(db, `households/${HID}/tasks`));
+        batch.set(r, { ...t, id: r.id });
+      });
+      await batch.commit();
+      await processCarryover();
+    }
+
+    setSyncStatus("live", "Live ✓");
+  } catch(e) {
+    console.error("Init error:", e);
+    setSyncStatus("error", "Check Firestore rules");
+    document.getElementById("loading-sub").textContent = "⚠️ Connection failed — check Firestore rules are set to allow read/write.";
+    setTimeout(hideLoading, 3000);
+    return;
+  }
+
+  hideLoading();
+  wireStatic();
+  setDashDate();
+  setWeekLabel();
+  listenToAll();
+}
+
+// ── Carryover ─────────────────────────────────────────────────────────────────
+async function processCarryover() {
+  const prev = prevWeekYear();
+  const snap = await getDocs(collection(db, `households/${HID}/tasks`));
+  if (snap.empty) return;
+  const unfinished = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(t => t.weekYear === prev && t.status !== "done" && t.status !== "skipped");
+  if (!unfinished.length) return;
+  const batch = writeBatch(db);
+  const carried = [];
+  for (const task of unfinished) {
+    batch.update(doc(db, `households/${HID}/tasks`, task.id), { status: "skipped" });
+    const nr = doc(collection(db, `households/${HID}/tasks`));
+    const nt = { ...task, weekYear: week, status: "carried_over", carriedOver: true, notes: "Carried over from last week" };
+    delete nt.id;
+    batch.set(nr, nt);
+    carried.push({ id: nr.id, ...nt });
+  }
+  await batch.commit();
+  if (carried.length) showCarryoverBanner(carried);
+}
+
+// ── Listeners ─────────────────────────────────────────────────────────────────
+function listenToAll() {
+  onSnapshot(collection(db, `households/${HID}/tasks`), snap => {
+    tasksCache = {};
+    snap.docs.forEach(d => { tasksCache[d.id] = { id: d.id, ...d.data() }; });
+    renderDashboard();
+    renderSchedule();
+    setSyncStatus("live", "Live ✓");
+  }, e => { console.error(e); setSyncStatus("error", "Sync error — check Firestore rules"); });
+
+  onSnapshot(collection(db, `households/${HID}/grocery`), snap => {
+    const data = {};
+    snap.docs.forEach(d => { data[d.id] = { id: d.id, ...d.data() }; });
+    renderGrocery(data);
+  });
+
+  onSnapshot(collection(db, `households/${HID}/meals`), snap => {
+    mealsCache = {};
+    snap.docs.forEach(d => { mealsCache[d.id] = { id: d.id, ...d.data() }; });
+    renderMeals();
+  });
+
+  onSnapshot(collection(db, `households/${HID}/maintenance`), snap => {
+    const data = {};
+    snap.docs.forEach(d => { data[d.id] = { id: d.id, ...d.data() }; });
+    renderMaint(data);
+  });
+}
+
+// ── Nav & modals ──────────────────────────────────────────────────────────────
+window.showPage = (page) => {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+  document.querySelector(`[data-page="${page}"]`).classList.add("active");
+};
+
+window.closeModal = (id) => document.getElementById(id).classList.remove("open");
+window.openModal  = (id) => document.getElementById(id).classList.add("open");
+document.querySelectorAll(".modal-overlay").forEach(el => {
+  el.addEventListener("click", e => { if (e.target === el) el.classList.remove("open"); });
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function wb(w) {
+  const c = w === NA ? "wb-s" : w === NB ? "wb-r" : "wb-b";
+  return `<span class="who-badge ${c}">${w || "Both"}</span>`;
+}
+
+function setDashDate() {
+  const el = document.getElementById("dash-date");
+  if (el) el.textContent = new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
+
+function setWeekLabel() {
+  const monday = new Date();
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const end = new Date(monday); end.setDate(monday.getDate() + 6);
+  const fmt = d => d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const lbl = `Week of ${fmt(monday)} – ${fmt(end)}`;
+  ["sched-week-label","meals-week-label"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = lbl;
+  });
+}
+
+function buildWhoToggle(containerId, current, onChange) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = [NA, NB, "Both"].map(w => {
+    const k = w === NA ? "s" : w === NB ? "r" : "b";
+    return `<div class="wt-btn${w === current ? " wt-"+k : ""}" data-w="${w}">${w}</div>`;
+  }).join("");
+  el.querySelectorAll(".wt-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const w = btn.dataset.w;
+      onChange(w);
+      el.querySelectorAll(".wt-btn").forEach(b => {
+        const k = b.dataset.w === NA ? "s" : b.dataset.w === NB ? "r" : "b";
+        b.className = "wt-btn" + (b.dataset.w === w ? " wt-"+k : "");
+      });
+    });
+  });
+}
+
+function buildPillRow(containerId, items, current, onChange) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(v => `<div class="pill${v === current ? " active" : ""}" data-v="${v}">${v}</div>`).join("");
+  el.querySelectorAll(".pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      el.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      onChange(btn.dataset.v);
+    });
+  });
+}
+
+// ── Wire static controls ──────────────────────────────────────────────────────
+function wireStatic() {
+  buildWhoToggle("quick-who-toggle", NA,  w => { quickWho = w; });
+  buildWhoToggle("maint-who-toggle", NA,  w => { maintWho = w; });
+  buildWhoToggle("modal-who-toggle", NA,  w => { modalWho = w; });
+  buildWhoToggle("edit-who-toggle",  NA,  w => { editModalWho = w; });
+  buildPillRow("quick-day-pills", DAYS.map(d=>d.slice(0,3)), "Mon", v => { quickDay = DAYS[DAYS.map(d=>d.slice(0,3)).indexOf(v)]; });
+  buildPillRow("cat-pills", CATS, "Produce", v => { selCat = v; });
+  buildPillRow("pri-pills", ["High","Medium","Low"], "Medium", v => { maintPri = v==="High"?1:v==="Medium"?2:3; });
+
+  // Quick add task
+  document.getElementById("quick-add-btn").addEventListener("click", async () => {
+    const title = document.getElementById("quick-title").value.trim();
+    if (!title) return;
+    setSyncStatus("saving","Saving...");
+    const r = doc(collection(db, `households/${HID}/tasks`));
+    await setDoc(r, { id:r.id, title, day:quickDay, who:quickWho, assignee:quickWho, category:"chores", status:"pending", weekYear:week, carriedOver:false, estimatedMins:20, notes:"" });
+    document.getElementById("quick-title").value = "";
+    setSyncStatus("live","Saved ✓");
+  });
+
+  // Add grocery
+  document.getElementById("add-groc-btn").addEventListener("click", async () => {
+    const name = document.getElementById("gn").value.trim();
+    if (!name) return;
+    const qty = document.getElementById("gq").value.trim() || "1";
+    const r = doc(collection(db, `households/${HID}/grocery`));
+    await setDoc(r, { id:r.id, name, qty, category:selCat, checked:false });
+    document.getElementById("gn").value = "";
+    document.getElementById("gq").value = "";
+  });
+
+  // Clear grocery
+  document.getElementById("clr-groc-btn").addEventListener("click", async () => {
+    const snap = await getDocs(collection(db, `households/${HID}/grocery`));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => { if (d.data().checked) batch.delete(d.ref); });
+    await batch.commit();
+  });
+
+  // Meal panel
+  document.getElementById("confirm-meal-btn").addEventListener("click", async () => {
+    const name = document.getElementById("meal-input").value.trim();
+    if (name && pendingMeal.date) {
+      const r = doc(collection(db, `households/${HID}/meals`));
+      await setDoc(r, { id:r.id, date:pendingMeal.date, type:pendingMeal.type, name, cook:"shared" });
+    }
+    document.getElementById("meal-add-panel").style.display = "none";
+    pendingMeal = { date:null, type:null, day:null };
+  });
+  document.getElementById("cancel-meal-btn").addEventListener("click", () => {
+    document.getElementById("meal-add-panel").style.display = "none";
+  });
+
+  // Add maintenance
+  document.getElementById("add-maint-btn").addEventListener("click", async () => {
+    const title = document.getElementById("mn").value.trim();
+    if (!title) return;
+    const due = document.getElementById("maint-due").value;
+    const r = doc(collection(db, `households/${HID}/maintenance`));
+    await setDoc(r, { id:r.id, title, assignee:maintWho, priority:maintPri, dueDate:due, completed:false });
+    document.getElementById("mn").value = "";
+    document.getElementById("maint-due").value = "";
+  });
+
+  // Schedule modal — save
+  document.getElementById("modal-save-task-btn").addEventListener("click", async () => {
+    const title = document.getElementById("modal-task-title").value.trim();
+    const day   = document.getElementById("modal-task-day").value;
+    const mins  = parseInt(document.getElementById("modal-task-mins").value) || 20;
+    if (!title) return;
+    const r = doc(collection(db, `households/${HID}/tasks`));
+    await setDoc(r, { id:r.id, title, day, who:modalWho, assignee:modalWho, category:"chores", status:"pending", weekYear:week, carriedOver:false, estimatedMins:mins, notes:"" });
+    document.getElementById("modal-task-title").value = "";
+    closeModal("modal-add-task");
+  });
+
+  // Edit modal — save
+  document.getElementById("modal-update-task-btn").addEventListener("click", async () => {
+    if (!editingTaskId) return;
+    const title = document.getElementById("edit-task-title").value.trim();
+    const day   = document.getElementById("edit-task-day").value;
+    if (!title) return;
+    await updateDoc(doc(db, `households/${HID}/tasks`, editingTaskId), { title, day, who:editModalWho, assignee:editModalWho });
+    closeModal("modal-edit-task");
+    editingTaskId = null;
+  });
+}
+
+// ── Render: Dashboard ─────────────────────────────────────────────────────────
+function renderDashboard() {
+  const all = Object.values(tasksCache).filter(t => t.weekYear === week);
+  const dayIdx = new Date().getDay();
+  const todayStr = DAYS[dayIdx === 0 ? 6 : dayIdx - 1];
+  const todayT   = all.filter(t => t.day === todayStr);
+  const done     = all.filter(t => t.status === "done").length;
+  const pct      = all.length ? Math.round(done * 100 / all.length) : 0;
+
+  document.getElementById("stat-done").textContent     = pct + "%";
+  document.getElementById("stat-done-sub").textContent = `${done} of ${all.length} done`;
+  const rem = todayT.filter(t => t.status !== "done").length;
+  document.getElementById("stat-today").textContent     = rem;
+  document.getElementById("stat-today-sub").textContent = rem === 1 ? "task remaining" : "tasks remaining";
+  const sT = all.filter(t => (t.who||t.assignee) === NA);
+  const rT = all.filter(t => (t.who||t.assignee) === NB);
+  document.getElementById("stat-sahana-ct").textContent = `${sT.filter(t=>t.status==="done").length}/${sT.length} done`;
+  document.getElementById("stat-raman-ct").textContent  = `${rT.filter(t=>t.status==="done").length}/${rT.length} done`;
+  document.getElementById("week-progress-fill").style.width = pct + "%";
+
+  // Day breakdown
+  document.getElementById("week-breakdown").innerHTML = DAYS.map(day => {
+    const dt = all.filter(t => t.day === day);
+    const dp = dt.length ? Math.round(dt.filter(t=>t.status==="done").length*100/dt.length) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="width:72px;font-size:12px;color:var(--ink-soft)">${day.slice(0,3)}</div>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:6px;width:${dp}%;background:var(--sage);border-radius:3px;transition:width .4s"></div>
+      </div>
+      <div style="width:36px;text-align:right;font-size:12px;color:var(--ink-muted)">${dt.filter(t=>t.status==="done").length}/${dt.length}</div>
+    </div>`;
+  }).join("");
+
+  // Today's list
+  const list = document.getElementById("today-list");
+  if (!todayT.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-text">Nothing scheduled for ${todayStr}</div></div>`;
+  } else {
+    list.innerHTML = todayT.map(t => `
+      <div class="task-row">
+        <div class="task-check${t.status==="done"?" done":""}" data-id="${t.id}" data-status="${t.status}"></div>
+        <div class="task-name${t.status==="done"?" struck":""}">${t.title}${t.carriedOver?`<span class="co-pill">last week</span>`:""}</div>
+        <div>${wb(t.who||t.assignee)}</div>
+      </div>`).join("");
+    list.querySelectorAll(".task-check").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await updateDoc(doc(db, `households/${HID}/tasks`, btn.dataset.id),
+          { status: btn.dataset.status === "done" ? "pending" : "done" });
+      });
+    });
+  }
+}
+
+// ── Render: Schedule ──────────────────────────────────────────────────────────
+function renderSchedule() {
+  const all  = Object.values(tasksCache).filter(t => t.weekYear === week);
+  const grid = document.getElementById("sched-grid");
+  if (!grid) return;
+
+  grid.innerHTML = DAYS.map(day => {
+    const dt = all.filter(t => t.day === day);
+    return `<div class="sched-day">
+      <div class="sched-day-hdr">
+        <div class="sched-day-name">${day}</div>
+        <div class="sched-day-add" data-day="${day}">+ Add</div>
+      </div>
+      <div class="sched-tasks">
+        ${dt.map(t => `
+          <div class="sched-task">
+            <div class="sched-task-check${t.status==="done"?" done":""}" data-id="${t.id}" data-status="${t.status}"></div>
+            <div class="sched-task-info">
+              <div class="sched-task-name${t.status==="done"?" struck":""}">${t.title}${t.carriedOver?`<span class="co-pill">last week</span>`:""}</div>
+              <div style="margin-top:3px">${wb(t.who||t.assignee)}</div>
+            </div>
+            <div class="sched-task-actions">
+              <button class="sched-task-btn sched-edit-btn" data-id="${t.id}">Edit</button>
+              <button class="sched-task-btn sched-del-btn"  data-id="${t.id}">Del</button>
+            </div>
+          </div>`).join("") || `<div class="sched-empty">Rest day</div>`}
+      </div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".sched-task-check").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      await updateDoc(doc(db, `households/${HID}/tasks`, btn.dataset.id),
+        { status: btn.dataset.status === "done" ? "pending" : "done" });
+    });
+  });
+
+  grid.querySelectorAll(".sched-day-add").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("modal-task-day").value    = btn.dataset.day;
+      document.getElementById("modal-task-title").value  = "";
+      buildWhoToggle("modal-who-toggle", NA, w => { modalWho = w; });
+      openModal("modal-add-task");
+    });
+  });
+
+  grid.querySelectorAll(".sched-edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = Object.values(tasksCache).find(x => x.id === btn.dataset.id);
+      if (!t) return;
+      editingTaskId  = t.id;
+      editModalWho   = t.who || t.assignee || NA;
+      document.getElementById("edit-task-title").value = t.title;
+      document.getElementById("edit-task-day").value   = t.day;
+      buildWhoToggle("edit-who-toggle", editModalWho, w => { editModalWho = w; });
+      openModal("modal-edit-task");
+    });
+  });
+
+  grid.querySelectorAll(".sched-del-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      await deleteDoc(doc(db, `households/${HID}/tasks`, btn.dataset.id));
+    });
+  });
+}
+
+// ── Render: Grocery ───────────────────────────────────────────────────────────
+function renderGrocery(obj) {
+  const items = Object.values(obj);
+  const active = items.filter(i => !i.checked).length;
+  const sub = document.getElementById("groc-subtitle");
+  if (sub) sub.textContent = `${active} item${active !== 1 ? "s" : ""} remaining`;
+  const list = document.getElementById("grocery-list");
+  if (!list) return;
+  if (!items.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-text">Your list is empty — add items on the right</div></div>`; return; }
+  const cats = [...new Set(items.map(i => i.category))].sort();
+  list.innerHTML = cats.map(cat => {
+    const ci = items.filter(i => i.category === cat);
+    return `<div class="groc-section">${cat}</div>
+      <div class="card" style="padding:0 20px;margin-bottom:12px">
+        ${ci.map(i => `
+          <div class="groc-row${i.checked?" ck":""}" data-id="${i.id}" data-checked="${i.checked}">
+            <div class="groc-check${i.checked?" done":""}"></div>
+            <span>${i.name}</span>
+            <span class="groc-qty">${i.qty}</span>
+          </div>`).join("")}
+      </div>`;
+  }).join("");
+  list.querySelectorAll(".groc-row").forEach(row => {
+    row.addEventListener("click", async () => {
+      await updateDoc(doc(db, `households/${HID}/grocery`, row.dataset.id),
+        { checked: row.dataset.checked === "true" ? false : true });
+    });
+  });
+}
+
+// ── Render: Meals ─────────────────────────────────────────────────────────────
+function renderMeals() {
+  const meals  = Object.values(mealsCache);
+  const monday = new Date();
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const grid = document.getElementById("meal-grid");
+  if (!grid) return;
+  grid.innerHTML = DAYS.map((day, i) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const date = d.toISOString().split("T")[0];
+    return `<div class="meal-row">
+      <div class="meal-day-lbl">${day}</div>
+      ${["breakfast","lunch","dinner"].map(type => {
+        const cls = type==="breakfast" ? "mc-b" : type==="lunch" ? "mc-l" : "mc-d";
+        const m   = meals.find(x => x.date === date && x.type === type);
+        return m
+          ? `<div class="mc ${cls}" data-id="${m.id}">${m.name}</div>`
+          : `<div class="mc-e" data-date="${date}" data-type="${type}" data-day="${day}">+ ${type[0].toUpperCase()}</div>`;
+      }).join("")}
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".mc-e").forEach(btn => {
+    btn.addEventListener("click", () => {
+      pendingMeal = { date:btn.dataset.date, type:btn.dataset.type, day:btn.dataset.day };
+      const lbl = { breakfast:"Breakfast", lunch:"Lunch", dinner:"Dinner" };
+      document.getElementById("meal-add-label").textContent = `Add ${lbl[pendingMeal.type]} · ${pendingMeal.day}`;
+      document.getElementById("meal-input").value = "";
+      document.getElementById("meal-add-panel").style.display = "block";
+      document.getElementById("meal-input").focus();
+    });
+  });
+  grid.querySelectorAll(".mc").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      await deleteDoc(doc(db, `households/${HID}/meals`, btn.dataset.id));
+    });
+  });
+}
+
+// ── Render: Maintenance ───────────────────────────────────────────────────────
+function renderMaint(obj) {
+  const items = Object.values(obj);
+  const list  = document.getElementById("maint-list");
+  if (!list) return;
+  if (!items.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-text">No home tasks yet — add one on the right</div></div>`; return; }
+  const grouped = { 1:[], 2:[], 3:[] };
+  items.forEach(t => (grouped[t.priority] || grouped[2]).push(t));
+  const labels = { 1:"High Priority", 2:"Medium Priority", 3:"Low Priority" };
+  list.innerHTML = [1,2,3].map(pri => {
+    const g = grouped[pri].sort((a,b) => a.completed - b.completed);
+    if (!g.length) return "";
+    return `<div class="maint-section-hdr">${labels[pri]}</div>
+      <div class="card" style="padding:0 20px;margin-bottom:12px">
+        ${g.map(t => `
+          <div class="maint-row${t.completed?" done-row":""}" data-id="${t.id}" data-completed="${t.completed}">
+            <div class="maint-check${t.completed?" done":""}"></div>
+            <div class="maint-info">
+              <div class="maint-title">${t.title}</div>
+              <div class="maint-meta">
+                ${wb(t.assignee)}
+                ${t.dueDate?`<span>Due ${new Date(t.dueDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>`:""}
+                <div class="pri-dot pri-${t.priority}"></div>
+              </div>
+            </div>
+          </div>`).join("")}
+      </div>`;
+  }).join("");
+  list.querySelectorAll(".maint-row").forEach(row => {
+    row.addEventListener("click", async () => {
+      await updateDoc(doc(db, `households/${HID}/maintenance`, row.dataset.id),
+        { completed: row.dataset.completed === "true" ? false : true });
+    });
+  });
+}
+
+// ── Carryover banner ──────────────────────────────────────────────────────────
+function showCarryoverBanner(tasks) {
+  const b = document.getElementById("carryover-banner");
+  if (!b) return;
+  b.style.display = "block";
+  b.innerHTML = `<strong>${tasks.length} task${tasks.length>1?"s":""} carried over from last week</strong><br>` +
+    tasks.map(t => `<span class="co-tag">${t.title} · ${t.who}</span>`).join(" ");
+}
+
+// ── Go ────────────────────────────────────────────────────────────────────────
+init();
+</script>
 </body>
 </html>
