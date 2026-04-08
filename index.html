@@ -4,114 +4,261 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HomeSync</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css"/>
   <link rel="manifest" href="manifest.json"/>
 </head>
 <body>
 
-<div id="appScreen">
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="loading-logo">🏡 HomeSync</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-sub">Loading your household...</div>
+</div>
 
-  <div class="hdr">
-    <div class="hdr-title" id="hdr-title">HomeSync</div>
-    <div class="hdr-sub"   id="hdr-sub">Loading...</div>
+<!-- Sync status -->
+<div id="sync-status">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span id="sync-text">Connecting...</span>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">🏡 HomeSync</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-page="dashboard"   onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-tab"        data-page="schedule"    onclick="showPage('schedule')">Schedule</button>
+      <button class="nav-tab"        data-page="grocery"     onclick="showPage('grocery')">Grocery</button>
+      <button class="nav-tab"        data-page="meals"       onclick="showPage('meals')">Meals</button>
+      <button class="nav-tab"        data-page="maintenance" onclick="showPage('maintenance')">Tasks</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="page-dashboard" class="page active">
+  <div class="page-header">
+    <div class="page-title">Good morning, Sahana & Raman 👋</div>
+    <div class="page-subtitle" id="dash-date"></div>
   </div>
 
-  <div class="body-wrap">
+  <div id="carryover-banner" class="co-banner" style="display:none"></div>
 
-    <div id="tab-home" class="tab on">
-      <div id="carryoverBanner" class="co-banner" style="display:none"></div>
-      <div class="prog-card">
-        <div class="prog-label">This week — <span id="done-ct">0</span> of <span id="tot-ct">0</span> done</div>
-        <div class="prog-bg"><div class="prog-fill" id="progressBar"></div></div>
-        <div class="prog-pct" id="progressPct">0%</div>
-      </div>
-      <div class="chips">
-        <div class="chip chip-s">Sahana · Set A</div>
-        <div class="chip chip-r">Raman · Set B</div>
-      </div>
-      <div class="sec-label">Today</div>
-      <div id="todayList"></div>
-      <div class="sec-label" style="margin-top:6px">Add a task</div>
-      <div class="add-drawer">
-        <div class="drawer-label">Task name</div>
-        <input class="drawer-input" id="nt" placeholder="e.g. Clean the oven"/>
-        <div class="drawer-label">Assign to</div>
-        <div class="who-toggle">
-          <div class="wt-btn" id="wt-s" onclick="selWho('home','Sahana')">Sahana</div>
-          <div class="wt-btn" id="wt-r" onclick="selWho('home','Raman')">Raman</div>
-          <div class="wt-btn" id="wt-b" onclick="selWho('home','Both')">Both</div>
-        </div>
-        <div class="drawer-label">Day</div>
-        <div class="day-pills" id="home-day-pills"></div>
-        <button class="add-btn-full" id="add-task-btn">Add task</button>
-      </div>
+  <div class="grid-4" style="margin-bottom:28px">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-done">0%</div>
+      <div class="stat-label">This week</div>
+      <div class="stat-sub" id="stat-done-sub">0 of 0 done</div>
     </div>
-
-    <div id="tab-schedule" class="tab">
-      <div id="schedGrid"></div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-today">0</div>
+      <div class="stat-label">Today's tasks</div>
+      <div class="stat-sub" id="stat-today-sub">remaining</div>
     </div>
-
-    <div id="tab-grocery" class="tab">
-      <div class="add-drawer">
-        <div class="drawer-label">Item name &amp; quantity</div>
-        <div style="display:flex;gap:6px;margin-bottom:8px">
-          <input class="drawer-input" id="gn" placeholder="e.g. Sourdough bread" style="flex:2"/>
-          <input class="drawer-input" id="gq" placeholder="Qty" style="max-width:54px"/>
-        </div>
-        <div class="drawer-label">Category</div>
-        <div class="day-pills" id="cat-pills"></div>
-        <button class="add-btn-full" id="add-groc-btn">Add to list</button>
-      </div>
-      <div id="groceryList"></div>
-      <button class="clr-btn" id="clr-groc-btn">Clear checked items</button>
+    <div class="stat-card chip-s-card">
+      <div class="stat-num" style="font-size:20px">Sahana</div>
+      <div class="stat-label">Set A this week</div>
+      <div class="stat-sub" id="stat-sahana-ct">— tasks</div>
     </div>
-
-    <div id="tab-meals" class="tab">
-      <div class="meal-legend">
-        <span class="ml ml-b">B</span> Breakfast
-        <span class="ml ml-l">L</span> Lunch
-        <span class="ml ml-d">D</span> Dinner
-        <span style="margin-left:auto;font-size:10px;color:var(--bark)">Tap + to add · tap meal to remove</span>
-      </div>
-      <div id="mealGrid" class="meal-grid"></div>
-      <div class="meal-add-panel" id="mealAddPanel">
-        <div class="drawer-label" id="mealAddLabel">Add meal</div>
-        <input class="drawer-input" id="mealInput" placeholder="Meal name..."/>
-        <div style="display:flex;gap:6px">
-          <button class="add-btn-full" style="flex:1" id="confirm-meal-btn">Add</button>
-          <button class="add-btn-full" style="background:var(--stone);color:var(--bark);border:.5px solid var(--pebble);flex:1" id="cancel-meal-btn">Cancel</button>
-        </div>
-      </div>
+    <div class="stat-card chip-r-card">
+      <div class="stat-num" style="font-size:20px">Raman</div>
+      <div class="stat-label">Set B this week</div>
+      <div class="stat-sub" id="stat-raman-ct">— tasks</div>
     </div>
-
-    <div id="tab-tasks" class="tab">
-      <div class="add-drawer">
-        <div class="drawer-label">Task name</div>
-        <input class="drawer-input" id="mn" placeholder="e.g. Fix leaky tap"/>
-        <div class="drawer-label">Assign to</div>
-        <div class="who-toggle">
-          <div class="wt-btn" id="mwt-s" onclick="selWho('maint','Sahana')">Sahana</div>
-          <div class="wt-btn" id="mwt-r" onclick="selWho('maint','Raman')">Raman</div>
-          <div class="wt-btn" id="mwt-b" onclick="selWho('maint','Both')">Both</div>
-        </div>
-        <div class="drawer-label">Priority</div>
-        <div class="day-pills" id="pri-pills"></div>
-        <button class="add-btn-full" id="add-maint-btn">Add task</button>
-      </div>
-      <div class="sec-label">Open tasks</div>
-      <div id="maintList"></div>
-    </div>
-
   </div>
 
-  <nav class="bottom-nav">
-    <div class="ni on" id="n-home"     onclick="go('home','HomeSync',todayLabel())">Home</div>
-    <div class="ni"    id="n-schedule" onclick="go('schedule','Schedule','Week of ' + weekLabel())">Schedule</div>
-    <div class="ni"    id="n-grocery"  onclick="go('grocery','Grocery','Shopping list')">Grocery</div>
-    <div class="ni"    id="n-meals"    onclick="go('meals','Meal planner',weekLabel())">Meals</div>
-    <div class="ni"    id="n-tasks"    onclick="go('tasks','Home tasks','Maintenance & more')">Tasks</div>
-  </nav>
+  <div class="grid-2">
+    <div>
+      <div class="section-label">Today's tasks</div>
+      <div class="card" id="today-list" style="padding:8px 20px">
+        <div class="empty-state"><div class="empty-state-text">Loading...</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Weekly progress</div>
+      <div class="card">
+        <div class="progress-bar" style="margin-bottom:20px"><div class="progress-fill" id="week-progress-fill" style="width:0%"></div></div>
+        <div id="week-breakdown"></div>
+      </div>
+      <div class="section-label" style="margin-top:20px">Quick add task</div>
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Task name</label>
+          <input type="text" class="form-input" id="quick-title" placeholder="e.g. Clean the oven"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign to</label>
+          <div class="who-toggle" id="quick-who-toggle"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Day</label>
+          <div class="pill-row" id="quick-day-pills"></div>
+        </div>
+        <button class="btn btn-primary" id="quick-add-btn">Add task</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- ===== SCHEDULE ===== -->
+<div id="page-schedule" class="page">
+  <div class="page-header">
+    <div class="page-title">Weekly Schedule</div>
+    <div class="page-subtitle" id="sched-week-label"></div>
+  </div>
+  <div id="sched-grid" class="sched-week-grid"></div>
+</div>
+
+<!-- ===== GROCERY ===== -->
+<div id="page-grocery" class="page">
+  <div class="page-header">
+    <div class="page-title">Shopping List</div>
+    <div class="page-subtitle" id="groc-subtitle"></div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="section-label">Items</div>
+      <div id="grocery-list"></div>
+      <button class="btn" id="clr-groc-btn" style="margin-top:12px">Clear checked items</button>
+    </div>
+    <div>
+      <div class="section-label">Add an item</div>
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Item name</label>
+          <input type="text" class="form-input" id="gn" placeholder="e.g. Sourdough bread"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input type="text" class="form-input" id="gq" placeholder="e.g. 2 bags"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div class="pill-row" id="cat-pills"></div>
+        </div>
+        <button class="btn btn-primary" id="add-groc-btn">Add to list</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MEALS ===== -->
+<div id="page-meals" class="page">
+  <div class="page-header">
+    <div class="page-title">Meal Planner</div>
+    <div class="page-subtitle" id="meals-week-label"></div>
+  </div>
+  <div class="meal-legend">
+    <span class="meal-pill mp-b">B</span> Breakfast &nbsp;
+    <span class="meal-pill mp-l">L</span> Lunch &nbsp;
+    <span class="meal-pill mp-d">D</span> Dinner
+    <span style="margin-left:auto;font-size:13px;color:var(--ink-muted)">Click + to add · click a meal to remove</span>
+  </div>
+  <div id="meal-grid" class="meal-table"></div>
+  <div class="card" id="meal-add-panel" style="display:none;max-width:420px;margin-top:20px">
+    <div class="card-title" id="meal-add-label">Add meal</div>
+    <div class="form-group">
+      <input type="text" class="form-input" id="meal-input" placeholder="e.g. Chicken stir fry"/>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" id="confirm-meal-btn" style="flex:1">Add</button>
+      <button class="btn" id="cancel-meal-btn" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAINTENANCE ===== -->
+<div id="page-maintenance" class="page">
+  <div class="page-header">
+    <div class="page-title">Home Tasks</div>
+    <div class="page-subtitle">Maintenance, kids & pets, and more</div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div id="maint-list"></div>
+    </div>
+    <div>
+      <div class="section-label">Add a task</div>
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Task name</label>
+          <input type="text" class="form-input" id="mn" placeholder="e.g. Fix leaky tap"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign to</label>
+          <div class="who-toggle" id="maint-who-toggle"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <div class="pill-row" id="pri-pills"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due date (optional)</label>
+          <input type="date" class="form-input" id="maint-due"/>
+        </div>
+        <button class="btn btn-primary" id="add-maint-btn">Add task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCHEDULE MODALS ===== -->
+<div class="modal-overlay" id="modal-add-task">
+  <div class="modal">
+    <div class="modal-title">Add task</div>
+    <div class="form-group">
+      <label class="form-label">Task name</label>
+      <input type="text" class="form-input" id="modal-task-title" placeholder="e.g. Vacuum bedroom"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Day</label>
+      <select class="form-select" id="modal-task-day">
+        <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+        <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Assign to</label>
+      <div class="who-toggle" id="modal-who-toggle"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Est. minutes</label>
+      <input type="number" class="form-input" id="modal-task-mins" placeholder="20" value="20"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-add-task')">Cancel</button>
+      <button class="btn btn-primary" id="modal-save-task-btn">Add task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-task">
+  <div class="modal">
+    <div class="modal-title">Edit task</div>
+    <div class="form-group">
+      <label class="form-label">Task name</label>
+      <input type="text" class="form-input" id="edit-task-title"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Move to day</label>
+      <select class="form-select" id="edit-task-day">
+        <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+        <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Assign to</label>
+      <div class="who-toggle" id="edit-who-toggle"></div>
+    </div>
+    <input type="hidden" id="edit-task-id"/>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-edit-task')">Cancel</button>
+      <button class="btn btn-primary" id="modal-update-task-btn">Save changes</button>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="app.js"></script>
