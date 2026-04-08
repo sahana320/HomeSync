@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HomeSync</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+</head>
+<body>
+
+<div id="appScreen">
+
+  <div class="hdr">
+    <div class="hdr-title" id="hdr-title">HomeSync</div>
+    <div class="hdr-sub"   id="hdr-sub">Loading...</div>
+  </div>
+
+  <div class="body-wrap">
+
+    <div id="tab-home" class="tab on">
+      <div id="carryoverBanner" class="co-banner" style="display:none"></div>
+      <div class="prog-card">
+        <div class="prog-label">This week — <span id="done-ct">0</span> of <span id="tot-ct">0</span> done</div>
+        <div class="prog-bg"><div class="prog-fill" id="progressBar"></div></div>
+        <div class="prog-pct" id="progressPct">0%</div>
+      </div>
+      <div class="chips">
+        <div class="chip chip-s">Sahana · Set A</div>
+        <div class="chip chip-r">Raman · Set B</div>
+      </div>
+      <div class="sec-label">Today</div>
+      <div id="todayList"></div>
+      <div class="sec-label" style="margin-top:6px">Add a task</div>
+      <div class="add-drawer">
+        <div class="drawer-label">Task name</div>
+        <input class="drawer-input" id="nt" placeholder="e.g. Clean the oven"/>
+        <div class="drawer-label">Assign to</div>
+        <div class="who-toggle">
+          <div class="wt-btn" id="wt-s" onclick="selWho('home','Sahana')">Sahana</div>
+          <div class="wt-btn" id="wt-r" onclick="selWho('home','Raman')">Raman</div>
+          <div class="wt-btn" id="wt-b" onclick="selWho('home','Both')">Both</div>
+        </div>
+        <div class="drawer-label">Day</div>
+        <div class="day-pills" id="home-day-pills"></div>
+        <button class="add-btn-full" onclick="addTask()">Add task</button>
+      </div>
+    </div>
+
+    <div id="tab-schedule" class="tab">
+      <div id="schedGrid"></div>
+    </div>
+
+    <div id="tab-grocery" class="tab">
+      <div class="add-drawer">
+        <div class="drawer-label">Item name &amp; quantity</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <input class="drawer-input" id="gn" placeholder="e.g. Sourdough bread" style="flex:2"/>
+          <input class="drawer-input" id="gq" placeholder="Qty" style="max-width:54px"/>
+        </div>
+        <div class="drawer-label">Category</div>
+        <div class="day-pills" id="cat-pills"></div>
+        <button class="add-btn-full" onclick="addGrocery()">Add to list</button>
+      </div>
+      <div id="groceryList"></div>
+      <button class="clr-btn" onclick="clearGrocery()">Clear checked items</button>
+    </div>
+
+    <div id="tab-meals" class="tab">
+      <div class="meal-legend">
+        <span class="ml ml-b">B</span> Breakfast
+        <span class="ml ml-l">L</span> Lunch
+        <span class="ml ml-d">D</span> Dinner
+        <span style="margin-left:auto;font-size:10px;color:var(--bark)">Tap + to add · tap meal to remove</span>
+      </div>
+      <div id="mealGrid" class="meal-grid"></div>
+      <div class="meal-add-panel" id="mealAddPanel">
+        <div class="drawer-label" id="mealAddLabel">Add meal</div>
+        <input class="drawer-input" id="mealInput" placeholder="Meal name..."/>
+        <div style="display:flex;gap:6px">
+          <button class="add-btn-full" style="flex:1" onclick="confirmMeal()">Add</button>
+          <button class="add-btn-full" style="background:var(--stone);color:var(--bark);border:.5px solid var(--pebble);flex:1" onclick="closeMealPanel()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-tasks" class="tab">
+      <div class="add-drawer">
+        <div class="drawer-label">Task name</div>
+        <input class="drawer-input" id="mn" placeholder="e.g. Fix leaky tap"/>
+        <div class="drawer-label">Assign to</div>
+        <div class="who-toggle">
+          <div class="wt-btn" id="mwt-s" onclick="selWho('maint','Sahana')">Sahana</div>
+          <div class="wt-btn" id="mwt-r" onclick="selWho('maint','Raman')">Raman</div>
+          <div class="wt-btn" id="mwt-b" onclick="selWho('maint','Both')">Both</div>
+        </div>
+        <div class="drawer-label">Priority</div>
+        <div class="day-pills" id="pri-pills"></div>
+        <button class="add-btn-full" onclick="addMaint()">Add task</button>
+      </div>
+      <div class="sec-label">Open tasks</div>
+      <div id="maintList"></div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="ni on" id="n-home"     onclick="go('home','HomeSync',todayLabel())">Home</div>
+    <div class="ni"    id="n-schedule" onclick="go('schedule','Schedule','Week of ' + weekLabel())">Schedule</div>
+    <div class="ni"    id="n-grocery"  onclick="go('grocery','Grocery','Shopping list')">Grocery</div>
+    <div class="ni"    id="n-meals"    onclick="go('meals','Meal planner',weekLabel())">Meals</div>
+    <div class="ni"    id="n-tasks"    onclick="go('tasks','Home tasks','Maintenance & more')">Tasks</div>
+  </nav>
+
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
