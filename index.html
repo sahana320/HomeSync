@@ -511,48 +511,35 @@ function hideLoading() {
 }
 
 // ── One-time fix: rebuild W16 from actual W15 custom tasks ───────────────────
-async function fixThisWeek() {
-  const thisWeek = weekYear();   // 2026-W16
-  const lastWeek = prevWeekYear(); // 2026-W15
+async function fixThisWeek(metaRef) {
+  const thisWeek = weekYear();
+  const lastWeek = prevWeekYear();
+  console.log("fixThisWeek — this:", thisWeek, "last:", lastWeek);
 
-  // Load W15 — your real custom tasks
   const lastSnap = await getDocs(
     query(collection(db, `households/${HID}/tasks`), where("weekYear","==",lastWeek))
   );
-  if (lastSnap.empty) return; // nothing to copy
+  console.log("W15 tasks found:", lastSnap.size);
+  if (lastSnap.empty) { console.warn("No W15 tasks — aborting fix"); return; }
 
-  // Load W16 — the incorrectly seeded tasks
   const thisSnap = await getDocs(
     query(collection(db, `households/${HID}/tasks`), where("weekYear","==",thisWeek))
   );
+  console.log("W16 tasks to delete:", thisSnap.size);
 
   const batch = writeBatch(db);
-
-  // Delete all W16 tasks
   thisSnap.docs.forEach(d => batch.delete(d.ref));
-
-  // Copy W15 into W16 with flipped assignees
   lastSnap.docs.forEach(d => {
     const t = d.data();
     if (t.status === "skipped") return;
     const oldWho = t.who || t.assignee || "Both";
     const newWho = oldWho === NA ? NB : oldWho === NB ? NA : "Both";
     const r = doc(collection(db, `households/${HID}/tasks`));
-    batch.set(r, {
-      ...t,
-      id:          r.id,
-      weekYear:    thisWeek,
-      status:      "pending",
-      carriedOver: false,
-      who:         newWho,
-      assignee:    newWho,
-      notes:       ""
-    });
+    batch.set(r, { ...t, id: r.id, weekYear: thisWeek, status: "pending", carriedOver: false, who: newWho, assignee: newWho, notes: "" });
   });
-
+  batch.set(metaRef, { w16fixed: true }, { merge: true });
   await batch.commit();
-  // Mark as done so this never runs again
-  await setDoc(doc(db, `households/${HID}/meta`), { w16fixed: true }, { merge: true });
+  console.log("✅ Fix complete — copied", lastSnap.size, "tasks from", lastWeek, "to", thisWeek);
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
