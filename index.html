@@ -512,23 +512,30 @@ function hideLoading() {
 
 // ── One-time fix: wipe bad W16 tasks, re-seed from W15 ───────────────────────
 async function fixThisWeek() {
-  const thisWeek = "2026-W16";
-  const lastWeek = "2026-W15";
+  const thisWeek = weekYear();
+  const lastWeek = prevWeekYear();
+  console.log("fixThisWeek — this:", thisWeek, "last:", lastWeek);
 
-  // Delete all existing W16 tasks
+  // Delete all existing tasks for this week
   const badSnap = await getDocs(
     query(collection(db, `households/${HID}/tasks`), where("weekYear","==",thisWeek))
   );
+  console.log("Deleting", badSnap.size, "tasks for", thisWeek);
   const delBatch = writeBatch(db);
   badSnap.docs.forEach(d => delBatch.delete(d.ref));
   await delBatch.commit();
 
-  // Load W15 tasks and copy with flipped assignees
+  // Load last week's tasks
   const lastSnap = await getDocs(
     query(collection(db, `households/${HID}/tasks`), where("weekYear","==",lastWeek))
   );
-  if (lastSnap.empty) { console.log("No W15 tasks found"); return; }
+  console.log("Found", lastSnap.size, "tasks for", lastWeek);
+  if (lastSnap.empty) {
+    console.warn("No tasks found for last week — cannot copy forward");
+    return;
+  }
 
+  // Copy with flipped assignees
   const newBatch = writeBatch(db);
   lastSnap.docs.forEach(d => {
     const t = d.data();
@@ -536,10 +543,14 @@ async function fixThisWeek() {
     const oldWho = t.who || t.assignee || "Both";
     const newWho = oldWho === NA ? NB : oldWho === NB ? NA : "Both";
     const r = doc(collection(db, `households/${HID}/tasks`));
-    newBatch.set(r, { ...t, id: r.id, weekYear: thisWeek, status: "pending", carriedOver: false, who: newWho, assignee: newWho, notes: "" });
+    newBatch.set(r, {
+      ...t, id: r.id, weekYear: thisWeek,
+      status: "pending", carriedOver: false,
+      who: newWho, assignee: newWho, notes: ""
+    });
   });
   await newBatch.commit();
-  console.log("✅ W16 tasks fixed from W15");
+  console.log("✅ Tasks copied from", lastWeek, "to", thisWeek, "with rotation");
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
