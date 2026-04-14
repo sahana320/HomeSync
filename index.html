@@ -6,6 +6,11 @@
 <title>HomeSync</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<meta name="apple-mobile-web-app-title" content="HomeSync"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#3D5C3F"/>
 <style>
 :root{
   --sage:#7C9A7E;--sage-light:#EEF4EE;--sage-dark:#3D5C3F;
@@ -25,8 +30,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6;}
-
-/* password screen */
+/* password */
 #password-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10001;gap:12px;}
 .pw-sub{font-size:14px;color:var(--ink-muted);margin-bottom:4px;}
 .pw-box{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
@@ -35,14 +39,12 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .pw-btn{padding:12px;background:var(--sage-dark);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--font-body);}
 .pw-btn:hover{background:var(--sage);}
 .pw-error{font-size:13px;color:var(--red);text-align:center;}
-
 /* loading */
 #loading-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;gap:16px;}
 .loading-logo{font-family:var(--font-display);font-size:36px;color:var(--sage-dark);}
 .loading-sub{font-size:14px;color:var(--ink-muted);}
 .loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--sage-dark);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
 /* sync */
 #sync-status{position:fixed;bottom:20px;right:20px;z-index:500;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:13px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-muted);flex-shrink:0;}
@@ -50,7 +52,6 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .sync-dot.saving{background:var(--amber);}
 .sync-dot.error{background:var(--red);}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
 /* nav */
 .nav{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
 .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;height:60px;}
@@ -59,21 +60,17 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .nav-tab{padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-soft);border:none;background:none;font-family:var(--font-body);transition:all .15s;}
 .nav-tab:hover{background:var(--sage-light);color:var(--sage-dark);}
 .nav-tab.active{background:var(--sage-light);color:var(--sage-dark);font-weight:600;}
-
 /* pages */
 .page{display:none;max-width:1200px;margin:0 auto;padding:36px 24px 80px;}
 .page.active{display:block;}
 .page-header{margin-bottom:28px;}
 .page-title{font-family:var(--font-display);font-size:36px;color:var(--ink);line-height:1.2;}
 .page-subtitle{color:var(--ink-muted);margin-top:6px;font-size:15px;}
-
 /* grid */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
 @media(max-width:900px){.grid-2{grid-template-columns:1fr;}.grid-4{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.grid-3,.grid-4{grid-template-columns:1fr;}.page{padding:20px 16px 60px;}.nav-tab{padding:8px 10px;font-size:12px;}}
-
+@media(max-width:600px){.grid-4{grid-template-columns:1fr;}.page{padding:20px 16px 60px;}.nav-tab{padding:8px 10px;font-size:12px;}}
 /* cards */
 .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:24px;box-shadow:var(--shadow);}
 .card-title{font-family:var(--font-display);font-size:18px;color:var(--ink);margin-bottom:16px;}
@@ -83,25 +80,19 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .stat-sub{font-size:12px;color:var(--sage);margin-top:4px;font-weight:500;}
 .chip-s-card{border-left:3px solid var(--clay);}
 .chip-r-card{border-left:3px solid var(--sky);}
-
 /* section label */
 .section-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-muted);font-weight:600;margin-bottom:12px;}
-
 /* buttons */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--white);color:var(--ink);font-family:var(--font-body);transition:all .15s;}
 .btn:hover{background:var(--sage-light);border-color:var(--sage);color:var(--sage-dark);}
 .btn-primary{background:var(--sage-dark);color:white;border-color:var(--sage-dark);}
 .btn-primary:hover{background:var(--sage);border-color:var(--sage);color:white;}
-.btn-danger{color:var(--red);border:none;background:transparent;padding:4px 8px;font-size:13px;font-family:var(--font-body);cursor:pointer;}
-.btn-danger:hover{background:var(--red-light);}
 .btn-sm{padding:6px 12px;font-size:13px;}
-
 /* forms */
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:13px;font-weight:500;color:var(--ink-soft);margin-bottom:6px;}
 .form-input,.form-select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-body);background:var(--white);color:var(--ink);transition:border-color .15s;}
 .form-input:focus,.form-select:focus{outline:none;border-color:var(--sage);box-shadow:0 0 0 3px rgba(124,154,126,.12);}
-
 /* who toggle */
 .who-toggle{display:flex;gap:6px;margin-bottom:4px;}
 .wt-btn{flex:1;padding:8px 6px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--white);color:var(--ink-soft);font-size:13px;font-weight:500;cursor:pointer;text-align:center;font-family:var(--font-body);transition:all .15s;}
@@ -109,28 +100,23 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .wt-s{background:var(--clay-light);border-color:var(--clay);color:var(--clay-dark);}
 .wt-r{background:var(--sky-light);border-color:var(--sky);color:var(--sky-dark);}
 .wt-b{background:var(--sage-light);border-color:var(--sage);color:var(--sage-dark);}
-
 /* pills */
 .pill-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
 .pill{padding:5px 12px;border-radius:20px;border:1px solid var(--border-strong);background:var(--white);color:var(--ink-soft);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);transition:all .15s;}
 .pill:hover{background:var(--sage-light);}
 .pill.active{background:var(--sage-dark);border-color:var(--sage-dark);color:white;}
-
 /* who badge */
 .who-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:500;}
 .wb-s{background:var(--clay-light);color:var(--clay-dark);}
 .wb-r{background:var(--sky-light);color:var(--sky-dark);}
 .wb-b{background:var(--sage-light);color:var(--sage-dark);}
-
 /* progress */
 .progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--sage-dark));border-radius:4px;transition:width .4s ease;}
-
 /* carryover */
 .co-banner{background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:24px;font-size:14px;color:var(--amber-dark);line-height:1.7;}
 .co-tag{display:inline-block;background:rgba(0,0,0,.06);border-radius:4px;font-size:12px;padding:1px 8px;margin:2px 3px 0 0;}
 .co-pill{font-size:10px;background:var(--amber);color:white;border-radius:4px;padding:1px 6px;margin-left:6px;}
-
 /* task rows */
 .task-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
 .task-row:last-child{border-bottom:none;}
@@ -138,7 +124,6 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .task-check.done{background:var(--sage);border-color:var(--sage);}
 .task-name{flex:1;font-size:14px;}
 .task-name.struck{text-decoration:line-through;color:var(--ink-muted);}
-
 /* schedule */
 .sched-week-grid{display:grid;grid-template-columns:repeat(7,minmax(140px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px;}
 @media(max-width:1100px){.sched-week-grid{grid-template-columns:repeat(4,minmax(160px,1fr));}}
@@ -161,8 +146,18 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .sched-edit-btn{background:var(--amber-light);color:var(--amber-dark);}
 .sched-del-btn{background:var(--red-light);color:var(--red);}
 .sched-empty{padding:16px 14px;font-size:13px;color:var(--ink-muted);font-style:italic;}
-
-/* grocery */
+/* grocery three-dot menu */
+.groc-menu-wrap{position:relative;display:inline-block;}
+.groc-menu-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink-muted);padding:2px 8px;border-radius:var(--radius-sm);line-height:1;font-family:var(--font-body);}
+.groc-menu-btn:hover{background:var(--border);color:var(--ink);}
+.groc-dropdown{display:none;position:absolute;right:0;top:110%;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:200;min-width:210px;overflow:hidden;}
+.groc-dropdown.open{display:block;}
+.groc-dd-item{width:100%;padding:11px 16px;font-size:14px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:10px;border:none;background:none;text-align:left;font-family:var(--font-body);}
+.groc-dd-item:hover{background:var(--sage-light);color:var(--sage-dark);}
+.groc-dd-item.danger{color:var(--red);}
+.groc-dd-item.danger:hover{background:var(--red-light);}
+.groc-dd-divider{height:1px;background:var(--border);margin:4px 0;}
+/* grocery rows */
 .groc-section{font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;padding:14px 0 6px;}
 .groc-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:14px;}
 .groc-row:last-child{border-bottom:none;}
@@ -170,7 +165,6 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .groc-row.ck .groc-check{background:var(--sage);border-color:var(--sage);}
 .groc-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border-strong);flex-shrink:0;}
 .groc-qty{margin-left:auto;font-size:13px;color:var(--ink-muted);}
-
 /* meals */
 .meal-legend{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:14px;color:var(--ink-soft);}
 .meal-pill{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;}
@@ -188,7 +182,6 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .mc-d{background:var(--clay-light);color:var(--clay-dark);border-color:#DFBBA8;}
 .mc-e{font-size:13px;padding:8px 10px;border-radius:var(--radius-sm);border:1px dashed var(--border-strong);color:var(--ink-muted);cursor:pointer;text-align:center;transition:all .15s;}
 .mc-e:hover{background:var(--sage-light);border-color:var(--sage);color:var(--sage-dark);}
-
 /* maintenance */
 .maint-section-hdr{font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 10px;}
 .maint-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
@@ -203,18 +196,15 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .pri-1{background:var(--clay);}
 .pri-2{background:var(--amber);}
 .pri-3{background:var(--border-strong);}
-
 /* modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(28,28,26,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--white);border-radius:var(--radius);padding:28px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
 .modal-title{font-family:var(--font-display);font-size:22px;margin-bottom:20px;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-
 /* empty */
 .empty-state{text-align:center;padding:40px 20px;color:var(--ink-muted);}
 .empty-state-text{font-size:14px;}
-
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
@@ -226,7 +216,7 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
   <div class="loading-logo">🏡 HomeSync</div>
   <div class="pw-sub">Enter your household password to continue</div>
   <div class="pw-box">
-    <input type="password" id="pw-input" class="pw-input" placeholder="Password" />
+    <input type="password" id="pw-input" class="pw-input" placeholder="Password"/>
     <div id="pw-error" class="pw-error" style="display:none">Incorrect password — try again</div>
     <button class="pw-btn" id="pw-btn">Unlock</button>
   </div>
@@ -302,15 +292,26 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 
 <!-- GROCERY -->
 <div id="page-grocery" class="page">
-  <div class="page-header">
-    <div class="page-title">Shopping List</div>
-    <div class="page-subtitle" id="groc-subtitle">0 items remaining</div>
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div class="page-title">Shopping List</div>
+      <div class="page-subtitle" id="groc-subtitle">0 items remaining</div>
+    </div>
+    <div class="groc-menu-wrap" style="margin-top:8px">
+      <button class="groc-menu-btn" id="groc-menu-btn" title="List options">⋯</button>
+      <div class="groc-dropdown" id="groc-dropdown">
+        <button class="groc-dd-item" id="groc-uncheck-all">☐ &nbsp;Uncheck all items</button>
+        <button class="groc-dd-item" id="groc-check-all">☑ &nbsp;Check all items</button>
+        <div class="groc-dd-divider"></div>
+        <button class="groc-dd-item danger" id="groc-delete-checked">🗑 &nbsp;Delete checked items</button>
+        <button class="groc-dd-item danger" id="groc-delete-all">✕ &nbsp;Delete entire list</button>
+      </div>
+    </div>
   </div>
   <div class="grid-2">
     <div>
       <div class="section-label">Items</div>
       <div id="grocery-list"></div>
-      <button class="btn" id="clr-groc-btn" style="margin-top:12px">Clear checked items</button>
     </div>
     <div>
       <div class="section-label">Add an item</div>
@@ -410,7 +411,6 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// ── Firebase config ───────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyC_Ij-1u7tGSmU30CjZUEpNFjj6ZdDAtls",
   authDomain: "householdsync-c18e2.firebaseapp.com",
@@ -424,14 +424,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const CATS = ["Produce","Dairy","Meat","Pantry","Frozen","Other"];
 const NA   = "Sahana";
 const NB   = "Raman";
 const HID  = "home";
 
-// ── State ─────────────────────────────────────────────────────────────────────
 let quickWho = NA, quickDay = "Monday";
 let maintWho = NA, maintPri = 2;
 let selCat   = "Produce";
@@ -448,18 +446,15 @@ function weekYear(date = new Date()) {
   const w = Math.ceil((((d - y) / 86400000) + 1) / 7);
   return `${d.getUTCFullYear()}-W${String(w).padStart(2,"0")}`;
 }
-
 function prevWeekYear() {
   const d = new Date(); d.setDate(d.getDate() - 7); return weekYear(d);
 }
-
 function rotationSide() {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
   const y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil((((d - y) / 86400000) + 1) / 7) % 2;
 }
-
 const week = weekYear();
 
 function buildWeekTasks(nameA, nameB, side) {
@@ -501,7 +496,6 @@ function setSyncStatus(state, text) {
   if (dot) dot.className = "sync-dot " + state;
   if (txt) txt.textContent = text;
 }
-
 function hideLoading() {
   const el = document.getElementById("loading-screen");
   if (!el) return;
@@ -510,33 +504,39 @@ function hideLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-
-
 // ── Boot ──────────────────────────────────────────────────────────────────────
 async function init() {
   setSyncStatus("saving", "Connecting...");
   document.getElementById("loading-sub").textContent = "Connecting to your household...";
-
   try {
-    // Ensure household doc exists — use merge so we never overwrite
     await setDoc(doc(db, "households", HID), { nameA: NA, nameB: NB }, { merge: true });
-
-    // Seed tasks if this is a new week
     const snap = await getDocs(
       query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
     );
     if (snap.empty) {
       document.getElementById("loading-sub").textContent = "Setting up this week's tasks...";
-      const tasks = buildWeekTasks(NA, NB, rotationSide());
+      const lastSnap = await getDocs(
+        query(collection(db, `households/${HID}/tasks`), where("weekYear","==",prevWeekYear()))
+      );
       const batch = writeBatch(db);
-      tasks.forEach(t => {
-        const r = doc(collection(db, `households/${HID}/tasks`));
-        batch.set(r, { ...t, id: r.id });
-      });
+      if (!lastSnap.empty) {
+        lastSnap.docs.forEach(d => {
+          const t = d.data();
+          if (t.status === "skipped" && !t.carriedOver) return;
+          const oldWho = t.who || t.assignee || "Both";
+          const newWho = oldWho === NA ? NB : oldWho === NB ? NA : "Both";
+          const r = doc(collection(db, `households/${HID}/tasks`));
+          batch.set(r, { ...t, id: r.id, weekYear: week, status: "pending", carriedOver: false, who: newWho, assignee: newWho, notes: "" });
+        });
+      } else {
+        buildWeekTasks(NA, NB, rotationSide()).forEach(t => {
+          const r = doc(collection(db, `households/${HID}/tasks`));
+          batch.set(r, { ...t, id: r.id });
+        });
+      }
       await batch.commit();
       await processCarryover();
     }
-
     setSyncStatus("live", "Live ✓");
   } catch(e) {
     console.error("Init error:", e);
@@ -545,7 +545,6 @@ async function init() {
     setTimeout(hideLoading, 3000);
     return;
   }
-
   hideLoading();
   wireStatic();
   setDashDate();
@@ -584,7 +583,7 @@ function listenToAll() {
     renderDashboard();
     renderSchedule();
     setSyncStatus("live", "Live ✓");
-  }, e => { console.error(e); setSyncStatus("error", "Sync error — check Firestore rules"); });
+  }, e => { console.error(e); setSyncStatus("error", "Sync error"); });
 
   onSnapshot(collection(db, `households/${HID}/grocery`), snap => {
     const data = {};
@@ -612,7 +611,6 @@ window.showPage = (page) => {
   document.getElementById("page-" + page).classList.add("active");
   document.querySelector(`[data-page="${page}"]`).classList.add("active");
 };
-
 window.closeModal = (id) => document.getElementById(id).classList.remove("open");
 window.openModal  = (id) => document.getElementById(id).classList.add("open");
 document.querySelectorAll(".modal-overlay").forEach(el => {
@@ -624,12 +622,10 @@ function wb(w) {
   const c = w === NA ? "wb-s" : w === NB ? "wb-r" : "wb-b";
   return `<span class="who-badge ${c}">${w || "Both"}</span>`;
 }
-
 function setDashDate() {
   const el = document.getElementById("dash-date");
   if (el) el.textContent = new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
 }
-
 function setWeekLabel() {
   const monday = new Date();
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
@@ -640,7 +636,6 @@ function setWeekLabel() {
     const el = document.getElementById(id); if (el) el.textContent = lbl;
   });
 }
-
 function buildWhoToggle(containerId, current, onChange) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -659,7 +654,6 @@ function buildWhoToggle(containerId, current, onChange) {
     });
   });
 }
-
 function buildPillRow(containerId, items, current, onChange) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -675,10 +669,10 @@ function buildPillRow(containerId, items, current, onChange) {
 
 // ── Wire static controls ──────────────────────────────────────────────────────
 function wireStatic() {
-  buildWhoToggle("quick-who-toggle", NA,  w => { quickWho = w; });
-  buildWhoToggle("maint-who-toggle", NA,  w => { maintWho = w; });
-  buildWhoToggle("modal-who-toggle", NA,  w => { modalWho = w; });
-  buildWhoToggle("edit-who-toggle",  NA,  w => { editModalWho = w; });
+  buildWhoToggle("quick-who-toggle", NA, w => { quickWho = w; });
+  buildWhoToggle("maint-who-toggle", NA, w => { maintWho = w; });
+  buildWhoToggle("modal-who-toggle", NA, w => { modalWho = w; });
+  buildWhoToggle("edit-who-toggle",  NA, w => { editModalWho = w; });
   buildPillRow("quick-day-pills", DAYS.map(d=>d.slice(0,3)), "Mon", v => { quickDay = DAYS[DAYS.map(d=>d.slice(0,3)).indexOf(v)]; });
   buildPillRow("cat-pills", CATS, "Produce", v => { selCat = v; });
   buildPillRow("pri-pills", ["High","Medium","Low"], "Medium", v => { maintPri = v==="High"?1:v==="Medium"?2:3; });
@@ -694,6 +688,49 @@ function wireStatic() {
     setSyncStatus("live","Saved ✓");
   });
 
+  // ── Grocery three-dot menu ──────────────────────────────────────────────────
+  const grocMenuBtn  = document.getElementById("groc-menu-btn");
+  const grocDropdown = document.getElementById("groc-dropdown");
+
+  grocMenuBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    grocDropdown.classList.toggle("open");
+  });
+  document.addEventListener("click", () => grocDropdown.classList.remove("open"));
+
+  document.getElementById("groc-uncheck-all").addEventListener("click", async () => {
+    grocDropdown.classList.remove("open");
+    const snap = await getDocs(collection(db, `households/${HID}/grocery`));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => { if (d.data().checked) batch.update(d.ref, { checked: false }); });
+    await batch.commit();
+  });
+
+  document.getElementById("groc-check-all").addEventListener("click", async () => {
+    grocDropdown.classList.remove("open");
+    const snap = await getDocs(collection(db, `households/${HID}/grocery`));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => { if (!d.data().checked) batch.update(d.ref, { checked: true }); });
+    await batch.commit();
+  });
+
+  document.getElementById("groc-delete-checked").addEventListener("click", async () => {
+    grocDropdown.classList.remove("open");
+    const snap = await getDocs(collection(db, `households/${HID}/grocery`));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => { if (d.data().checked) batch.delete(d.ref); });
+    await batch.commit();
+  });
+
+  document.getElementById("groc-delete-all").addEventListener("click", async () => {
+    grocDropdown.classList.remove("open");
+    if (!confirm("Delete the entire shopping list?")) return;
+    const snap = await getDocs(collection(db, `households/${HID}/grocery`));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  });
+
   // Add grocery
   document.getElementById("add-groc-btn").addEventListener("click", async () => {
     const name = document.getElementById("gn").value.trim();
@@ -703,14 +740,6 @@ function wireStatic() {
     await setDoc(r, { id:r.id, name, qty, category:selCat, checked:false });
     document.getElementById("gn").value = "";
     document.getElementById("gq").value = "";
-  });
-
-  // Clear grocery
-  document.getElementById("clr-groc-btn").addEventListener("click", async () => {
-    const snap = await getDocs(collection(db, `households/${HID}/grocery`));
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => { if (d.data().checked) batch.delete(d.ref); });
-    await batch.commit();
   });
 
   // Meal panel
@@ -770,7 +799,6 @@ function renderDashboard() {
   const todayT   = all.filter(t => t.day === todayStr);
   const done     = all.filter(t => t.status === "done").length;
   const pct      = all.length ? Math.round(done * 100 / all.length) : 0;
-
   document.getElementById("stat-done").textContent     = pct + "%";
   document.getElementById("stat-done-sub").textContent = `${done} of ${all.length} done`;
   const rem = todayT.filter(t => t.status !== "done").length;
@@ -781,8 +809,6 @@ function renderDashboard() {
   document.getElementById("stat-sahana-ct").textContent = `${sT.filter(t=>t.status==="done").length}/${sT.length} done`;
   document.getElementById("stat-raman-ct").textContent  = `${rT.filter(t=>t.status==="done").length}/${rT.length} done`;
   document.getElementById("week-progress-fill").style.width = pct + "%";
-
-  // Day breakdown
   document.getElementById("week-breakdown").innerHTML = DAYS.map(day => {
     const dt = all.filter(t => t.day === day);
     const dp = dt.length ? Math.round(dt.filter(t=>t.status==="done").length*100/dt.length) : 0;
@@ -794,8 +820,6 @@ function renderDashboard() {
       <div style="width:36px;text-align:right;font-size:12px;color:var(--ink-muted)">${dt.filter(t=>t.status==="done").length}/${dt.length}</div>
     </div>`;
   }).join("");
-
-  // Today's list
   const list = document.getElementById("today-list");
   if (!todayT.length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-state-text">Nothing scheduled for ${todayStr}</div></div>`;
@@ -820,7 +844,6 @@ function renderSchedule() {
   const all  = Object.values(tasksCache).filter(t => t.weekYear === week);
   const grid = document.getElementById("sched-grid");
   if (!grid) return;
-
   grid.innerHTML = DAYS.map(day => {
     const dt = all.filter(t => t.day === day);
     return `<div class="sched-day">
@@ -844,36 +867,32 @@ function renderSchedule() {
       </div>
     </div>`;
   }).join("");
-
   grid.querySelectorAll(".sched-task-check").forEach(btn => {
     btn.addEventListener("click", async () => {
       await updateDoc(doc(db, `households/${HID}/tasks`, btn.dataset.id),
         { status: btn.dataset.status === "done" ? "pending" : "done" });
     });
   });
-
   grid.querySelectorAll(".sched-day-add").forEach(btn => {
     btn.addEventListener("click", () => {
-      document.getElementById("modal-task-day").value    = btn.dataset.day;
-      document.getElementById("modal-task-title").value  = "";
+      document.getElementById("modal-task-day").value   = btn.dataset.day;
+      document.getElementById("modal-task-title").value = "";
       buildWhoToggle("modal-who-toggle", NA, w => { modalWho = w; });
       openModal("modal-add-task");
     });
   });
-
   grid.querySelectorAll(".sched-edit-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const t = Object.values(tasksCache).find(x => x.id === btn.dataset.id);
       if (!t) return;
-      editingTaskId  = t.id;
-      editModalWho   = t.who || t.assignee || NA;
+      editingTaskId = t.id;
+      editModalWho  = t.who || t.assignee || NA;
       document.getElementById("edit-task-title").value = t.title;
       document.getElementById("edit-task-day").value   = t.day;
       buildWhoToggle("edit-who-toggle", editModalWho, w => { editModalWho = w; });
       openModal("modal-edit-task");
     });
   });
-
   grid.querySelectorAll(".sched-del-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       await deleteDoc(doc(db, `households/${HID}/tasks`, btn.dataset.id));
@@ -883,13 +902,16 @@ function renderSchedule() {
 
 // ── Render: Grocery ───────────────────────────────────────────────────────────
 function renderGrocery(obj) {
-  const items = Object.values(obj);
+  const items  = Object.values(obj);
   const active = items.filter(i => !i.checked).length;
-  const sub = document.getElementById("groc-subtitle");
+  const sub    = document.getElementById("groc-subtitle");
   if (sub) sub.textContent = `${active} item${active !== 1 ? "s" : ""} remaining`;
   const list = document.getElementById("grocery-list");
   if (!list) return;
-  if (!items.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-text">Your list is empty — add items on the right</div></div>`; return; }
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-text">Your list is empty — add items on the right</div></div>`;
+    return;
+  }
   const cats = [...new Set(items.map(i => i.category))].sort();
   list.innerHTML = cats.map(cat => {
     const ci = items.filter(i => i.category === cat);
@@ -932,7 +954,6 @@ function renderMeals() {
       }).join("")}
     </div>`;
   }).join("");
-
   grid.querySelectorAll(".mc-e").forEach(btn => {
     btn.addEventListener("click", () => {
       pendingMeal = { date:btn.dataset.date, type:btn.dataset.type, day:btn.dataset.day };
@@ -955,7 +976,10 @@ function renderMaint(obj) {
   const items = Object.values(obj);
   const list  = document.getElementById("maint-list");
   if (!list) return;
-  if (!items.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-text">No home tasks yet — add one on the right</div></div>`; return; }
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-text">No home tasks yet — add one on the right</div></div>`;
+    return;
+  }
   const grouped = { 1:[], 2:[], 3:[] };
   items.forEach(t => (grouped[t.priority] || grouped[2]).push(t));
   const labels = { 1:"High Priority", 2:"Medium Priority", 3:"Low Priority" };
@@ -996,7 +1020,7 @@ function showCarryoverBanner(tasks) {
 }
 
 // ── Password gate ─────────────────────────────────────────────────────────────
-const CORRECT_PASSWORD = "TheGunduM@ri$"; // 👈 change this to whatever you want
+const CORRECT_PASSWORD = "TheGunduM@ri$";
 
 function checkPassword() {
   const stored = sessionStorage.getItem("hs_auth");
@@ -1011,7 +1035,6 @@ function setupPasswordScreen() {
   const btn   = document.getElementById("pw-btn");
   const input = document.getElementById("pw-input");
   const error = document.getElementById("pw-error");
-
   function attempt() {
     if (input.value === CORRECT_PASSWORD) {
       sessionStorage.setItem("hs_auth", CORRECT_PASSWORD);
@@ -1026,7 +1049,6 @@ function setupPasswordScreen() {
       setTimeout(() => { input.style.borderColor = ""; }, 1500);
     }
   }
-
   btn.addEventListener("click", attempt);
   input.addEventListener("keydown", e => { if (e.key === "Enter") attempt(); });
   input.focus();
