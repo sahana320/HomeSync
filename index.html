@@ -510,37 +510,7 @@ function hideLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-// ── One-time fix: rebuild W16 from actual W15 custom tasks ───────────────────
-async function fixThisWeek(metaRef) {
-  const thisWeek = weekYear();
-  const lastWeek = prevWeekYear();
-  console.log("fixThisWeek — this:", thisWeek, "last:", lastWeek);
 
-  const lastSnap = await getDocs(
-    query(collection(db, `households/${HID}/tasks`), where("weekYear","==",lastWeek))
-  );
-  console.log("W15 tasks found:", lastSnap.size);
-  if (lastSnap.empty) { console.warn("No W15 tasks — aborting fix"); return; }
-
-  const thisSnap = await getDocs(
-    query(collection(db, `households/${HID}/tasks`), where("weekYear","==",thisWeek))
-  );
-  console.log("W16 tasks to delete:", thisSnap.size);
-
-  const batch = writeBatch(db);
-  thisSnap.docs.forEach(d => batch.delete(d.ref));
-  lastSnap.docs.forEach(d => {
-    const t = d.data();
-    if (t.status === "skipped") return;
-    const oldWho = t.who || t.assignee || "Both";
-    const newWho = oldWho === NA ? NB : oldWho === NB ? NA : "Both";
-    const r = doc(collection(db, `households/${HID}/tasks`));
-    batch.set(r, { ...t, id: r.id, weekYear: thisWeek, status: "pending", carriedOver: false, who: newWho, assignee: newWho, notes: "" });
-  });
-  batch.set(metaRef, { w16fixed: true }, { merge: true });
-  await batch.commit();
-  console.log("✅ Fix complete — copied", lastSnap.size, "tasks from", lastWeek, "to", thisWeek);
-}
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 async function init() {
