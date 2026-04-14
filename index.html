@@ -736,9 +736,13 @@ function wireStatic() {
     }
   });
 
+  async function getAwayDays() {
+    const snap = await getDoc(doc(db, "households", HID));
+    return snap.data()?.[`awayDays_${week}`] || [];
+  }
+
   async function buildAwayToggles() {
-    const infoSnap = await getDoc(doc(db, "households", HID));
-    const awayDays = infoSnap.data()?.awayDays || [];
+    const awayDays = await getAwayDays();
     const container = document.getElementById("sched-day-toggles");
     container.innerHTML = DAYS.map(day => `
       <div class="sched-day-toggle">
@@ -754,12 +758,11 @@ function wireStatic() {
   }
 
   async function toggleAwayDay(day, isAway) {
-    const infoSnap = await getDoc(doc(db, "households", HID));
-    const awayDays = infoSnap.data()?.awayDays || [];
+    const awayDays = await getAwayDays();
     const updated  = isAway
       ? [...new Set([...awayDays, day])]
       : awayDays.filter(d => d !== day);
-    await updateDoc(doc(db, "households", HID), { awayDays: updated });
+    await updateDoc(doc(db, "households", HID), { [`awayDays_${week}`]: updated });
     const snap  = await getDocs(
       query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
     );
@@ -776,10 +779,10 @@ function wireStatic() {
     await batch.commit();
   }
 
-  document.getElementById("sched-clear-away").addEventListener("click", async () => {
-    schedDropdown.classList.remove("open");
+  document.getElementById("sched-clear-away").addEventListener("click", async e => {
+    e.stopPropagation();
     if (!confirm("Mark all days as back home and restore all paused tasks?")) return;
-    await updateDoc(doc(db, "households", HID), { awayDays: [] });
+    await updateDoc(doc(db, "households", HID), { [`awayDays_${week}`]: [] });
     const snap  = await getDocs(
       query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
     );
@@ -788,6 +791,8 @@ function wireStatic() {
       if (d.data().awaySkipped) batch.update(d.ref, { status: "pending", awaySkipped: false });
     });
     await batch.commit();
+    schedDropdown.classList.remove("open");
+    renderSchedule();
   });
 
   // ── Grocery three-dot menu ──────────────────────────────────────────────────
