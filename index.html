@@ -293,46 +293,24 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 
 <!-- SCHEDULE -->
 <div id="page-schedule" class="page">
-  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
-    <div>
-      <div class="page-title">Weekly Schedule</div>
-      <div class="page-subtitle" id="sched-week-label"></div>
-    </div>
-    <div class="sched-menu-wrap">
-      <button class="sched-menu-btn" id="sched-menu-btn" title="Schedule options">⋯</button>
-      <div class="sched-dropdown" id="sched-dropdown">
-        <div class="sched-dropdown-title">Mark days as away</div>
-        <div class="sched-day-toggles" id="sched-day-toggles"></div>
-        <div class="sched-dropdown-divider"></div>
-        <button class="groc-dropdown-item" id="sched-clear-away" style="padding:10px 16px;font-size:13px;width:100%;text-align:left;border:none;background:none;cursor:pointer;font-family:var(--font-body);color:var(--ink-soft);">✕ &nbsp;Clear all away days</button>
-      </div>
-    </div>
+  <div class="page-header">
+    <div class="page-title">Weekly Schedule</div>
+    <div class="page-subtitle" id="sched-week-label"></div>
   </div>
   <div id="sched-grid" class="sched-week-grid"></div>
 </div>
 
 <!-- GROCERY -->
 <div id="page-grocery" class="page">
-  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
-    <div>
-      <div class="page-title">Shopping List</div>
-      <div class="page-subtitle" id="groc-subtitle">0 items remaining</div>
-    </div>
-    <div class="groc-menu-wrap">
-      <button class="groc-menu-btn" id="groc-menu-btn" title="List options">⋯</button>
-      <div class="groc-dropdown" id="groc-dropdown">
-        <button class="groc-dropdown-item" id="groc-uncheck-all">☐ &nbsp;Uncheck all items</button>
-        <button class="groc-dropdown-item" id="groc-check-all">☑ &nbsp;Check all items</button>
-        <div class="groc-dropdown-divider"></div>
-        <button class="groc-dropdown-item danger" id="groc-delete-checked">🗑 &nbsp;Delete checked items</button>
-        <button class="groc-dropdown-item danger" id="groc-delete-all">✕ &nbsp;Delete entire list</button>
-      </div>
-    </div>
+  <div class="page-header">
+    <div class="page-title">Shopping List</div>
+    <div class="page-subtitle" id="groc-subtitle">0 items remaining</div>
   </div>
   <div class="grid-2">
     <div>
       <div class="section-label">Items</div>
       <div id="grocery-list"></div>
+      <button class="btn" id="clr-groc-btn" style="margin-top:12px">Clear checked items</button>
     </div>
     <div>
       <div class="section-label">Add an item</div>
@@ -719,50 +697,7 @@ function wireStatic() {
     setSyncStatus("live","Saved ✓");
   });
 
-  // ── Grocery three-dot menu ──────────────────────────────────────────────────
-  const menuBtn      = document.getElementById("groc-menu-btn");
-  const dropdown     = document.getElementById("groc-dropdown");
-
-  menuBtn.addEventListener("click", e => {
-    e.stopPropagation();
-    dropdown.classList.toggle("open");
-  });
-  document.addEventListener("click", () => dropdown.classList.remove("open"));
-
-  document.getElementById("groc-uncheck-all").addEventListener("click", async () => {
-    dropdown.classList.remove("open");
-    const snap  = await getDocs(collection(db, `households/${HID}/grocery`));
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => { if (d.data().checked) batch.update(d.ref, { checked: false }); });
-    await batch.commit();
-  });
-
-  document.getElementById("groc-check-all").addEventListener("click", async () => {
-    dropdown.classList.remove("open");
-    const snap  = await getDocs(collection(db, `households/${HID}/grocery`));
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => { if (!d.data().checked) batch.update(d.ref, { checked: true }); });
-    await batch.commit();
-  });
-
-  document.getElementById("groc-delete-checked").addEventListener("click", async () => {
-    dropdown.classList.remove("open");
-    const snap  = await getDocs(collection(db, `households/${HID}/grocery`));
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => { if (d.data().checked) batch.delete(d.ref); });
-    await batch.commit();
-  });
-
-  document.getElementById("groc-delete-all").addEventListener("click", async () => {
-    dropdown.classList.remove("open");
-    if (!confirm("Delete the entire shopping list?")) return;
-    const snap  = await getDocs(collection(db, `households/${HID}/grocery`));
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => batch.delete(d.ref));
-    await batch.commit();
-  });
-
-  // ── Add grocery ─────────────────────────────────────────────────────────────
+  // Add grocery
   document.getElementById("add-groc-btn").addEventListener("click", async () => {
     const name = document.getElementById("gn").value.trim();
     if (!name) return;
@@ -806,80 +741,7 @@ function wireStatic() {
     document.getElementById("maint-due").value = "";
   });
 
-  // ── Schedule three-dot menu ─────────────────────────────────────────────────
-  const schedMenuBtn  = document.getElementById("sched-menu-btn");
-  const schedDropdown = document.getElementById("sched-dropdown");
-
-  schedMenuBtn.addEventListener("click", e => {
-    e.stopPropagation();
-    schedDropdown.classList.toggle("open");
-    buildAwayToggles(); // refresh toggle states each time
-  });
-  document.addEventListener("click", () => schedDropdown.classList.remove("open"));
-
-  document.getElementById("sched-clear-away").addEventListener("click", async () => {
-    schedDropdown.classList.remove("open");
-    if (!confirm("Mark all days as back home and un-skip all tasks?")) return;
-    // Un-skip all skipped tasks for this week
-    const snap  = await getDocs(
-      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
-    );
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => {
-      if (d.data().status === "skipped") batch.update(d.ref, { status: "pending", awaySkipped: false });
-    });
-    // Clear away days from household doc
-    batch.update(doc(db, "households", HID), { awayDays: [] });
-    await batch.commit();
-  });
-
-  async function buildAwayToggles() {
-    const infoSnap  = await getDoc(doc(db, "households", HID));
-    const awayDays  = infoSnap.data()?.awayDays || [];
-    const container = document.getElementById("sched-day-toggles");
-    container.innerHTML = DAYS.map(day => `
-      <div class="sched-day-toggle">
-        <label for="away-${day}">${day}</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="away-${day}" ${awayDays.includes(day) ? "checked" : ""}/>
-          <span class="toggle-track"></span>
-        </label>
-      </div>`).join("");
-    DAYS.forEach(day => {
-      document.getElementById("away-" + day).addEventListener("change", async e => {
-        await toggleAwayDay(day, e.target.checked);
-      });
-    });
-  }
-
-  async function toggleAwayDay(day, isAway) {
-    const infoSnap = await getDoc(doc(db, "households", HID));
-    const awayDays = infoSnap.data()?.awayDays || [];
-    const updated  = isAway
-      ? [...new Set([...awayDays, day])]
-      : awayDays.filter(d => d !== day);
-
-    // Update away days list on household doc
-    await updateDoc(doc(db, "households", HID), { awayDays: updated });
-
-    // Update task statuses for that day
-    const snap  = await getDocs(
-      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
-    );
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => {
-      const t = d.data();
-      if (t.day !== day) return;
-      if (isAway && t.status === "pending") {
-        batch.update(d.ref, { status: "skipped", awaySkipped: true });
-      } else if (!isAway && t.awaySkipped) {
-        batch.update(d.ref, { status: "pending", awaySkipped: false });
-      }
-    });
-    await batch.commit();
-  }
-
-  // ── Schedule modal — save ───────────────────────────────────────────────────
+  // Schedule modal — save
   document.getElementById("modal-save-task-btn").addEventListener("click", async () => {
     const title = document.getElementById("modal-task-title").value.trim();
     const day   = document.getElementById("modal-task-day").value;
