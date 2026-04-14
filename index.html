@@ -146,7 +146,28 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .sched-edit-btn{background:var(--amber-light);color:var(--amber-dark);}
 .sched-del-btn{background:var(--red-light);color:var(--red);}
 .sched-empty{padding:16px 14px;font-size:13px;color:var(--ink-muted);font-style:italic;}
-/* grocery three-dot menu */
+/* schedule three-dot menu */
+.sched-menu-wrap{position:relative;display:inline-block;}
+.sched-menu-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink-muted);padding:2px 8px;border-radius:var(--radius-sm);line-height:1;font-family:var(--font-body);}
+.sched-menu-btn:hover{background:var(--border);color:var(--ink);}
+.sched-dropdown{display:none;position:absolute;right:0;top:110%;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:200;min-width:240px;overflow:hidden;}
+.sched-dropdown.open{display:block;}
+.sched-dd-title{padding:10px 16px 6px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;}
+.sched-dd-divider{height:1px;background:var(--border);margin:4px 0;}
+.sched-day-toggles{padding:6px 16px 12px;display:flex;flex-direction:column;gap:8px;}
+.sched-day-toggle{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink);}
+.sched-day-toggle label{cursor:pointer;flex:1;}
+.sched-clear-away{width:100%;padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-soft);display:flex;align-items:center;gap:8px;border:none;background:none;text-align:left;font-family:var(--font-body);}
+.sched-clear-away:hover{background:var(--sage-light);color:var(--sage-dark);}
+/* toggle switch */
+.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;background:var(--border-strong);border-radius:10px;cursor:pointer;transition:background .2s;}
+.toggle-track::after{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;}
+.toggle-switch input:checked + .toggle-track{background:var(--amber);}
+.toggle-switch input:checked + .toggle-track::after{transform:translateX(16px);}
+/* away banner on day column */
+.away-banner{background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:8px 12px;margin:6px 10px;font-size:12px;color:var(--amber-dark);}
 .groc-menu-wrap{position:relative;display:inline-block;}
 .groc-menu-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink-muted);padding:2px 8px;border-radius:var(--radius-sm);line-height:1;font-family:var(--font-body);}
 .groc-menu-btn:hover{background:var(--border);color:var(--ink);}
@@ -283,9 +304,20 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 
 <!-- SCHEDULE -->
 <div id="page-schedule" class="page">
-  <div class="page-header">
-    <div class="page-title">Weekly Schedule</div>
-    <div class="page-subtitle" id="sched-week-label"></div>
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div class="page-title">Weekly Schedule</div>
+      <div class="page-subtitle" id="sched-week-label"></div>
+    </div>
+    <div class="sched-menu-wrap" style="margin-top:8px">
+      <button class="sched-menu-btn" id="sched-menu-btn" title="Schedule options">⋯</button>
+      <div class="sched-dropdown" id="sched-dropdown">
+        <div class="sched-dd-title">Mark days as away ✈️</div>
+        <div class="sched-day-toggles" id="sched-day-toggles"></div>
+        <div class="sched-dd-divider"></div>
+        <button class="sched-clear-away" id="sched-clear-away">✕ &nbsp;Clear all away days</button>
+      </div>
+    </div>
   </div>
   <div id="sched-grid" class="sched-week-grid"></div>
 </div>
@@ -686,6 +718,73 @@ function wireStatic() {
     await setDoc(r, { id:r.id, title, day:quickDay, who:quickWho, assignee:quickWho, category:"chores", status:"pending", weekYear:week, carriedOver:false, estimatedMins:20, notes:"" });
     document.getElementById("quick-title").value = "";
     setSyncStatus("live","Saved ✓");
+  });
+
+  // ── Schedule three-dot menu ─────────────────────────────────────────────────
+  const schedMenuBtn  = document.getElementById("sched-menu-btn");
+  const schedDropdown = document.getElementById("sched-dropdown");
+
+  schedMenuBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    schedDropdown.classList.toggle("open");
+    if (schedDropdown.classList.contains("open")) buildAwayToggles();
+  });
+  document.addEventListener("click", () => schedDropdown.classList.remove("open"));
+
+  async function buildAwayToggles() {
+    const infoSnap = await getDoc(doc(db, "households", HID));
+    const awayDays = infoSnap.data()?.awayDays || [];
+    const container = document.getElementById("sched-day-toggles");
+    container.innerHTML = DAYS.map(day => `
+      <div class="sched-day-toggle">
+        <label for="away-${day}">${day}</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="away-${day}" ${awayDays.includes(day) ? "checked" : ""}/>
+          <span class="toggle-track"></span>
+        </label>
+      </div>`).join("");
+    DAYS.forEach(day => {
+      document.getElementById("away-" + day).addEventListener("change", async e => {
+        await toggleAwayDay(day, e.target.checked);
+      });
+    });
+  }
+
+  async function toggleAwayDay(day, isAway) {
+    const infoSnap = await getDoc(doc(db, "households", HID));
+    const awayDays = infoSnap.data()?.awayDays || [];
+    const updated  = isAway
+      ? [...new Set([...awayDays, day])]
+      : awayDays.filter(d => d !== day);
+    await updateDoc(doc(db, "households", HID), { awayDays: updated });
+    const snap  = await getDocs(
+      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
+    );
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => {
+      const t = d.data();
+      if (t.day !== day) return;
+      if (isAway && t.status === "pending") {
+        batch.update(d.ref, { status: "skipped", awaySkipped: true });
+      } else if (!isAway && t.awaySkipped) {
+        batch.update(d.ref, { status: "pending", awaySkipped: false });
+      }
+    });
+    await batch.commit();
+  }
+
+  document.getElementById("sched-clear-away").addEventListener("click", async () => {
+    schedDropdown.classList.remove("open");
+    if (!confirm("Mark all days as back home and restore all paused tasks?")) return;
+    await updateDoc(doc(db, "households", HID), { awayDays: [] });
+    const snap  = await getDocs(
+      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
+    );
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => {
+      if (d.data().awaySkipped) batch.update(d.ref, { status: "pending", awaySkipped: false });
+    });
+    await batch.commit();
   });
 
   // ── Grocery three-dot menu ──────────────────────────────────────────────────
