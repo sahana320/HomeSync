@@ -152,22 +152,22 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .sched-menu-btn:hover{background:var(--border);color:var(--ink);}
 .sched-dropdown{display:none;position:absolute;right:0;top:110%;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:200;min-width:240px;overflow:hidden;}
 .sched-dropdown.open{display:block;}
-.sched-dd-title{padding:10px 16px 6px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;}
+.sched-dd-title{padding:12px 16px 8px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;}
 .sched-dd-divider{height:1px;background:var(--border);margin:4px 0;}
-.sched-day-toggles{padding:6px 16px 12px;display:flex;flex-direction:column;gap:8px;}
-.sched-day-toggle{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink);}
+.sched-day-toggles{padding:4px 16px 12px;display:flex;flex-direction:column;gap:2px;}
+.sched-day-toggle{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:14px;color:var(--ink);}
 .sched-day-toggle label{cursor:pointer;flex:1;}
-.sched-clear-away{width:100%;padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-soft);display:flex;align-items:center;gap:8px;border:none;background:none;text-align:left;font-family:var(--font-body);}
+.sched-clear-away{width:100%;padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-muted);display:flex;align-items:center;gap:8px;border:none;background:none;text-align:left;font-family:var(--font-body);}
 .sched-clear-away:hover{background:var(--sage-light);color:var(--sage-dark);}
-/* toggle switch */
-.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0;}
-.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
-.toggle-track{position:absolute;inset:0;background:var(--border-strong);border-radius:10px;cursor:pointer;transition:background .2s;}
-.toggle-track::after{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;}
-.toggle-switch input:checked + .toggle-track{background:var(--amber);}
-.toggle-switch input:checked + .toggle-track::after{transform:translateX(16px);}
-/* away banner on day column */
-.away-banner{background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:8px 12px;margin:6px 10px;font-size:12px;color:var(--amber-dark);}
+/* away checkbox pill */
+.away-check{appearance:none;-webkit-appearance:none;width:44px;height:24px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--border);cursor:pointer;position:relative;transition:all .2s;flex-shrink:0;}
+.away-check::after{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.away-check:checked{background:var(--amber);border-color:var(--amber);}
+.away-check:checked::after{transform:translateX(20px);}
+/* away badge on day column */
+.away-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--amber-dark);background:var(--amber-light);border:1px solid var(--amber);border-radius:20px;padding:2px 10px;letter-spacing:.01em;}
+/* away banner inside day */
+.away-banner{background:var(--amber-light);border-left:3px solid var(--amber);padding:10px 14px;margin:0;font-size:12px;color:var(--amber-dark);line-height:1.5;}
 .groc-menu-wrap{position:relative;display:inline-block;}
 .groc-menu-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink-muted);padding:2px 8px;border-radius:var(--radius-sm);line-height:1;font-family:var(--font-body);}
 .groc-menu-btn:hover{background:var(--border);color:var(--ink);}
@@ -729,7 +729,12 @@ function wireStatic() {
     schedDropdown.classList.toggle("open");
     if (schedDropdown.classList.contains("open")) buildAwayToggles();
   });
-  document.addEventListener("click", () => schedDropdown.classList.remove("open"));
+  // Only close on outside click — NOT on clicks inside the dropdown
+  document.addEventListener("click", e => {
+    if (!schedDropdown.contains(e.target) && e.target !== schedMenuBtn) {
+      schedDropdown.classList.remove("open");
+    }
+  });
 
   async function buildAwayToggles() {
     const infoSnap = await getDoc(doc(db, "households", HID));
@@ -738,14 +743,12 @@ function wireStatic() {
     container.innerHTML = DAYS.map(day => `
       <div class="sched-day-toggle">
         <label for="away-${day}">${day}</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="away-${day}" ${awayDays.includes(day) ? "checked" : ""}/>
-          <span class="toggle-track"></span>
-        </label>
+        <input type="checkbox" class="away-check" id="away-${day}" ${awayDays.includes(day) ? "checked" : ""}/>
       </div>`).join("");
     DAYS.forEach(day => {
       document.getElementById("away-" + day).addEventListener("change", async e => {
         await toggleAwayDay(day, e.target.checked);
+        renderSchedule();
       });
     });
   }
