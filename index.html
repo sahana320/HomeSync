@@ -150,25 +150,24 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
 .sched-menu-wrap{position:relative;display:inline-block;}
 .sched-menu-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink-muted);padding:2px 8px;border-radius:var(--radius-sm);line-height:1;font-family:var(--font-body);}
 .sched-menu-btn:hover{background:var(--border);color:var(--ink);}
-.sched-dropdown{display:none;position:absolute;right:0;top:110%;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:200;min-width:240px;overflow:hidden;}
+.sched-dropdown{display:none;position:absolute;right:0;top:110%;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:200;min-width:280px;overflow:hidden;}
 .sched-dropdown.open{display:block;}
-.sched-dd-title{padding:12px 16px 8px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;}
+.sched-dd-title{padding:12px 16px 6px;font-size:11px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;}
+.sched-dd-sub{padding:0 16px 8px;font-size:12px;color:var(--ink-muted);line-height:1.4;}
 .sched-dd-divider{height:1px;background:var(--border);margin:4px 0;}
-.sched-day-toggles{padding:4px 16px 12px;display:flex;flex-direction:column;gap:2px;}
-.sched-day-toggle{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:14px;color:var(--ink);}
-.sched-day-toggle label{cursor:pointer;flex:1;}
-.sched-clear-away{width:100%;padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-muted);display:flex;align-items:center;gap:8px;border:none;background:none;text-align:left;font-family:var(--font-body);}
-.sched-clear-away:hover{background:var(--sage-light);color:var(--sage-dark);}
-/* away checkbox pill */
-.away-check{appearance:none;-webkit-appearance:none;width:44px;height:24px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--border);cursor:pointer;position:relative;transition:all .2s;flex-shrink:0;}
-.away-check::after{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15);}
-.away-check:checked{background:var(--amber);border-color:var(--amber);}
-.away-check:checked::after{transform:translateX(20px);}
-/* away badge on day column */
-.away-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--amber-dark);background:var(--amber-light);border:1px solid var(--amber);border-radius:20px;padding:2px 10px;letter-spacing:.01em;}
-/* away banner inside day */
-.away-banner{background:var(--amber-light);border-left:3px solid var(--amber);padding:10px 14px;margin:0;font-size:12px;color:var(--amber-dark);line-height:1.5;}
-.sched-away-badge{position:absolute;top:8px;right:8px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--amber-dark);background:rgba(251,246,234,.8);backdrop-filter:blur(10px);border:1px solid var(--amber);border-radius:20px;padding:4px 10px;z-index:10;}
+.sched-dd-action{width:100%;padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-muted);display:flex;align-items:center;gap:8px;border:none;background:none;text-align:left;font-family:var(--font-body);}
+.sched-dd-action:hover{background:var(--sage-light);color:var(--sage-dark);}
+/* vacation calendar */
+.vac-cal{padding:4px 16px 12px;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.vac-cal-cell{aspect-ratio:1;border:1.5px solid var(--border);border-radius:8px;background:var(--white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-body);font-size:11px;color:var(--ink);transition:all .15s;padding:2px;line-height:1.1;}
+.vac-cal-cell:hover{border-color:var(--amber);background:var(--amber-light);}
+.vac-cal-cell.selected{background:var(--amber);border-color:var(--amber-dark);color:white;font-weight:600;}
+.vac-cal-cell .vac-cal-day{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.7;}
+.vac-cal-cell .vac-cal-num{font-size:14px;font-weight:600;margin-top:1px;}
+.vac-cal-cell.selected .vac-cal-day{opacity:.9;}
+/* vacation marker on day column */
+.sched-day.is-vacation{background:var(--amber-light);border-color:var(--amber);}
+.vac-day-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;color:var(--amber-dark);background:var(--white);border:1px solid var(--amber);border-radius:10px;padding:1px 7px;letter-spacing:.01em;}
 .groc-menu-wrap{position:relative;display:inline-block;}
 .groc-menu-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink-muted);padding:2px 8px;border-radius:var(--radius-sm);line-height:1;font-family:var(--font-body);}
 .groc-menu-btn:hover{background:var(--border);color:var(--ink);}
@@ -313,10 +312,11 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
     <div class="sched-menu-wrap" style="margin-top:8px">
       <button class="sched-menu-btn" id="sched-menu-btn" title="Schedule options">⋯</button>
       <div class="sched-dropdown" id="sched-dropdown">
-        <div class="sched-dd-title">Mark days as away ✈️</div>
-        <div class="sched-day-toggles" id="sched-day-toggles"></div>
+        <div class="sched-dd-title">Plan vacation 🌴</div>
+        <div class="sched-dd-sub">Tap days you'll be away. Chores shift to the days you're home.</div>
+        <div class="vac-cal" id="vac-cal"></div>
         <div class="sched-dd-divider"></div>
-        <button class="sched-clear-away" id="sched-clear-away">✕ &nbsp;Clear all away days</button>
+        <button class="sched-dd-action" id="sched-clear-vac">↺ &nbsp;Clear vacation days</button>
       </div>
     </div>
   </div>
@@ -470,6 +470,7 @@ let modalWho = NA, editModalWho = NA;
 let editingTaskId = null;
 let pendingMeal   = { date:null, type:null, day:null };
 let tasksCache = {}, mealsCache = {};
+let vacationDaysCache = [];
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 function weekYear(date = new Date()) {
@@ -551,15 +552,40 @@ async function init() {
       const lastSnap = await getDocs(
         query(collection(db, `households/${HID}/tasks`), where("weekYear","==",prevWeekYear()))
       );
+      // Read last week's vacation days to know which tasks get rotation-paused
+      // vs. penalty-carryover.
+      const houseSnap = await getDoc(doc(db, "households", HID));
+      const lastVacationDays = houseSnap.data()?.[`vacationDays_${prevWeekYear()}`] || [];
       const batch = writeBatch(db);
+      const carriedList = [];
       if (!lastSnap.empty) {
+        const flip = (who) => who === NA ? NB : who === NB ? NA : "Both";
         lastSnap.docs.forEach(d => {
           const t = d.data();
-          if (t.status === "skipped" && !t.carriedOver) return;
+          // Skip the prior-week carryover ghosts so they don't infinitely
+          // propagate. They were already given one fresh shot last week.
+          if (t.carriedOver) return;
+          const dayWasVacation = lastVacationDays.includes(t.day);
           const oldWho = t.who || t.assignee || "Both";
-          const newWho = oldWho === NA ? NB : oldWho === NB ? NA : "Both";
           const r = doc(collection(db, `households/${HID}/tasks`));
-          batch.set(r, { ...t, id: r.id, weekYear: week, status: "pending", carriedOver: false, who: newWho, assignee: newWho, notes: "" });
+          if (t.status === "done") {
+            // Finished last week → fresh copy, rotated assignee, no pill.
+            const newWho = flip(oldWho);
+            batch.set(r, { ...t, id: r.id, weekYear: week, status: "pending",
+                           carriedOver: false, who: newWho, assignee: newWho, notes: "" });
+          } else if (dayWasVacation) {
+            // Unfinished but excused (vacation) → fresh copy, SAME assignee,
+            // no pill. Rotation paused for this task only.
+            batch.set(r, { ...t, id: r.id, weekYear: week, status: "pending",
+                           carriedOver: false, who: oldWho, assignee: oldWho, notes: "" });
+          } else {
+            // Unfinished and not on vacation → carryover penalty, same assignee, pill.
+            const co = { ...t, id: r.id, weekYear: week, status: "pending",
+                         carriedOver: true, who: oldWho, assignee: oldWho,
+                         notes: "Carried over from last week" };
+            batch.set(r, co);
+            carriedList.push(co);
+          }
         });
       } else {
         buildWeekTasks(NA, NB, rotationSide()).forEach(t => {
@@ -568,7 +594,32 @@ async function init() {
         });
       }
       await batch.commit();
-      await processCarryover();
+      if (carriedList.length) showCarryoverBanner(carriedList);
+    } else {
+      // Self-heal: if any day this week has zero tasks (e.g. lingering damage
+      // from earlier away-mode bugs that dropped tasks), backfill from the
+      // default template. Idempotent — once a day has any task, untouched.
+      const existingByDay = {};
+      snap.docs.forEach(d => {
+        const t = d.data();
+        existingByDay[t.day] = (existingByDay[t.day] || 0) + 1;
+      });
+      const missing = DAYS.filter(d => !existingByDay[d]);
+      if (missing.length) {
+        const template = buildWeekTasks(NA, NB, rotationSide());
+        const fillBatch = writeBatch(db);
+        let added = 0;
+        template.forEach(t => {
+          if (!missing.includes(t.day)) return;
+          const r = doc(collection(db, `households/${HID}/tasks`));
+          fillBatch.set(r, { ...t, id: r.id, weekYear: week });
+          added++;
+        });
+        if (added) {
+          document.getElementById("loading-sub").textContent = `Restoring ${missing.join(", ")}...`;
+          await fillBatch.commit();
+        }
+      }
     }
     setSyncStatus("live", "Live ✓");
   } catch(e) {
@@ -585,31 +636,14 @@ async function init() {
   listenToAll();
 }
 
-// ── Carryover ─────────────────────────────────────────────────────────────────
-async function processCarryover() {
-  const prev = prevWeekYear();
-  const snap = await getDocs(collection(db, `households/${HID}/tasks`));
-  if (snap.empty) return;
-  const unfinished = snap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(t => t.weekYear === prev && t.status !== "done" && t.status !== "skipped");
-  if (!unfinished.length) return;
-  const batch = writeBatch(db);
-  const carried = [];
-  for (const task of unfinished) {
-    batch.update(doc(db, `households/${HID}/tasks`, task.id), { status: "skipped" });
-    const nr = doc(collection(db, `households/${HID}/tasks`));
-    const nt = { ...task, weekYear: week, status: "carried_over", carriedOver: true, notes: "Carried over from last week" };
-    delete nt.id;
-    batch.set(nr, nt);
-    carried.push({ id: nr.id, ...nt });
-  }
-  await batch.commit();
-  if (carried.length) showCarryoverBanner(carried);
-}
-
 // ── Listeners ─────────────────────────────────────────────────────────────────
 function listenToAll() {
+  onSnapshot(doc(db, "households", HID), snap => {
+    vacationDaysCache = snap.data()?.[`vacationDays_${week}`] || [];
+    renderDashboard();
+    renderSchedule();
+  });
+
   onSnapshot(collection(db, `households/${HID}/tasks`), snap => {
     tasksCache = {};
     snap.docs.forEach(d => { tasksCache[d.id] = { id: d.id, ...d.data() }; });
@@ -721,14 +755,14 @@ function wireStatic() {
     setSyncStatus("live","Saved ✓");
   });
 
-  // ── Schedule three-dot menu ─────────────────────────────────────────────────
+  // ── Schedule three-dot menu (vacation calendar) ─────────────────────────────
   const schedMenuBtn  = document.getElementById("sched-menu-btn");
   const schedDropdown = document.getElementById("sched-dropdown");
 
   schedMenuBtn.addEventListener("click", e => {
     e.stopPropagation();
     schedDropdown.classList.toggle("open");
-    if (schedDropdown.classList.contains("open")) buildAwayToggles();
+    if (schedDropdown.classList.contains("open")) buildVacCalendar();
   });
   // Only close on outside click — NOT on clicks inside the dropdown
   document.addEventListener("click", e => {
@@ -737,63 +771,47 @@ function wireStatic() {
     }
   });
 
-  async function getAwayDays() {
+  async function getVacationDays() {
     const snap = await getDoc(doc(db, "households", HID));
-    return snap.data()?.[`awayDays_${week}`] || [];
+    return snap.data()?.[`vacationDays_${week}`] || [];
   }
 
-  async function buildAwayToggles() {
-    const awayDays = await getAwayDays();
-    const container = document.getElementById("sched-day-toggles");
-    container.innerHTML = DAYS.map(day => `
-      <div class="sched-day-toggle">
-        <label for="away-${day}">${day}</label>
-        <input type="checkbox" class="away-check" id="away-${day}" ${awayDays.includes(day) ? "checked" : ""}/>
-      </div>`).join("");
-    DAYS.forEach(day => {
-      document.getElementById("away-" + day).addEventListener("change", async e => {
-        await toggleAwayDay(day, e.target.checked);
-        renderSchedule();
+  async function buildVacCalendar() {
+    const vacDays = await getVacationDays();
+    const monday = new Date();
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const container = document.getElementById("vac-cal");
+    container.innerHTML = DAYS.map((day, i) => {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const isSel = vacDays.includes(day);
+      return `
+        <div class="vac-cal-cell${isSel ? " selected" : ""}" data-day="${day}">
+          <div class="vac-cal-day">${day.slice(0,3)}</div>
+          <div class="vac-cal-num">${d.getDate()}</div>
+        </div>`;
+    }).join("");
+    container.querySelectorAll(".vac-cal-cell").forEach(cell => {
+      cell.addEventListener("click", async e => {
+        e.stopPropagation();
+        await toggleVacationDay(cell.dataset.day);
       });
     });
   }
 
-  async function toggleAwayDay(day, isAway) {
-    const awayDays = await getAwayDays();
-    const updated  = isAway
-      ? [...new Set([...awayDays, day])]
-      : awayDays.filter(d => d !== day);
-    await updateDoc(doc(db, "households", HID), { [`awayDays_${week}`]: updated });
-    const snap  = await getDocs(
-      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
-    );
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => {
-      const t = d.data();
-      if (t.day !== day) return;
-      if (isAway && t.status === "pending") {
-        batch.update(d.ref, { status: "skipped", awaySkipped: true });
-      } else if (!isAway && t.awaySkipped) {
-        batch.update(d.ref, { status: "pending", awaySkipped: false });
-      }
-    });
-    await batch.commit();
+  async function toggleVacationDay(day) {
+    const vacDays = await getVacationDays();
+    const next = vacDays.includes(day)
+      ? vacDays.filter(d => d !== day)
+      : [...vacDays, day];
+    await updateDoc(doc(db, "households", HID), { [`vacationDays_${week}`]: next });
+    buildVacCalendar();
   }
 
-  document.getElementById("sched-clear-away").addEventListener("click", async e => {
+  document.getElementById("sched-clear-vac").addEventListener("click", async e => {
     e.stopPropagation();
-    if (!confirm("Mark all days as back home and restore all paused tasks?")) return;
-    await updateDoc(doc(db, "households", HID), { [`awayDays_${week}`]: [] });
-    const snap  = await getDocs(
-      query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))
-    );
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => {
-      if (d.data().awaySkipped) batch.update(d.ref, { status: "pending", awaySkipped: false });
-    });
-    await batch.commit();
+    if (!confirm("Clear all vacation days for this week?")) return;
+    await updateDoc(doc(db, "households", HID), { [`vacationDays_${week}`]: [] });
     schedDropdown.classList.remove("open");
-    renderSchedule();
   });
 
   // ── Grocery three-dot menu ──────────────────────────────────────────────────
@@ -929,7 +947,10 @@ function renderDashboard() {
     </div>`;
   }).join("");
   const list = document.getElementById("today-list");
-  if (!todayT.length) {
+  const todayIsVacation = vacationDaysCache.includes(todayStr);
+  if (todayIsVacation) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-text">🌴 Vacation today — enjoy!</div></div>`;
+  } else if (!todayT.length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-state-text">Nothing scheduled for ${todayStr}</div></div>`;
   } else {
     list.innerHTML = todayT.map(t => `
@@ -952,26 +973,30 @@ function renderSchedule() {
   const all  = Object.values(tasksCache).filter(t => t.weekYear === week);
   const grid = document.getElementById("sched-grid");
   if (!grid) return;
+  const vacDays = vacationDaysCache;
   grid.innerHTML = DAYS.map(day => {
+    const isVacation = vacDays.includes(day);
     const dt = all.filter(t => t.day === day);
-    return `<div class="sched-day">
+    return `<div class="sched-day${isVacation ? " is-vacation" : ""}">
       <div class="sched-day-hdr">
-        <div class="sched-day-name">${day}</div>
-        <div class="sched-day-add" data-day="${day}">+ Add</div>
+        <div class="sched-day-name">${day}${isVacation ? ` <span class="vac-day-badge">🌴 Vacation</span>` : ""}</div>
+        ${isVacation ? "" : `<div class="sched-day-add" data-day="${day}">+ Add</div>`}
       </div>
       <div class="sched-tasks">
-        ${dt.map(t => `
-          <div class="sched-task">
-            <div class="sched-task-check${t.status==="done"?" done":""}" data-id="${t.id}" data-status="${t.status}"></div>
-            <div class="sched-task-info">
-              <div class="sched-task-name${t.status==="done"?" struck":""}">${t.title}${t.carriedOver?`<span class="co-pill">last week</span>`:""}</div>
-              <div style="margin-bottom:4px">${wb(t.who||t.assignee)}</div>
-              <div class="sched-task-actions">
-                <button class="sched-task-btn sched-edit-btn" data-id="${t.id}" title="Edit">✏️</button>
-                <button class="sched-task-btn sched-del-btn"  data-id="${t.id}" title="Delete">✕</button>
-              </div>
-            </div>
-          </div>`).join("") || `<div class="sched-empty">Rest day</div>`}
+        ${isVacation
+          ? `<div class="sched-empty">Enjoy your day off 🌴<br><span style="font-size:11px;opacity:.7">Tasks paused — rotation won't flip next week</span></div>`
+          : (dt.map(t => `
+              <div class="sched-task">
+                <div class="sched-task-check${t.status==="done"?" done":""}" data-id="${t.id}" data-status="${t.status}"></div>
+                <div class="sched-task-info">
+                  <div class="sched-task-name${t.status==="done"?" struck":""}">${t.title}${t.carriedOver?`<span class="co-pill">last week</span>`:""}</div>
+                  <div style="margin-bottom:4px">${wb(t.who||t.assignee)}</div>
+                  <div class="sched-task-actions">
+                    <button class="sched-task-btn sched-edit-btn" data-id="${t.id}" title="Edit">✏️</button>
+                    <button class="sched-task-btn sched-del-btn"  data-id="${t.id}" title="Delete">✕</button>
+                  </div>
+                </div>
+              </div>`).join("") || `<div class="sched-empty">Rest day</div>`)}
       </div>
     </div>`;
   }).join("");
