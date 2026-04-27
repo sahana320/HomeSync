@@ -317,6 +317,19 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--ink);min-h
         <div class="vac-cal" id="vac-cal"></div>
         <div class="sched-dd-divider"></div>
         <button class="sched-dd-action" id="sched-clear-vac">↺ &nbsp;Clear vacation days</button>
+        <div class="sched-dd-divider"></div>
+        <button class="sched-dd-action" id="sched-recover-toggle">🛠 &nbsp;Recover from prior week</button>
+        <div id="sched-recover-panel" style="display:none;padding:8px 16px 14px;font-size:12px;color:var(--ink-soft);">
+          <div style="margin-bottom:8px;color:var(--ink-muted)">Pull tasks from a known-good week into the current week.</div>
+          <label style="display:block;margin-bottom:4px">Source week (e.g. <code>2026-W16</code>)</label>
+          <input type="text" id="recover-source" class="form-input" style="margin-bottom:8px" placeholder="2026-W16"/>
+          <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer">
+            <input type="checkbox" id="recover-flip"/> Flip assignees (Sahana ↔ Raman)
+          </label>
+          <button class="btn btn-sm" id="recover-preview-btn" style="width:100%;margin-bottom:6px">Preview</button>
+          <div id="recover-preview-out" style="font-size:11px;color:var(--ink-muted);line-height:1.5;max-height:160px;overflow-y:auto;margin-bottom:8px"></div>
+          <button class="btn btn-sm" id="recover-apply-btn" style="width:100%;background:var(--clay);color:white;border-color:var(--clay);display:none">Wipe current week & re-seed</button>
+        </div>
       </div>
     </div>
   </div>
@@ -595,31 +608,6 @@ async function init() {
       }
       await batch.commit();
       if (carriedList.length) showCarryoverBanner(carriedList);
-    } else {
-      // Self-heal: if any day this week has zero tasks (e.g. lingering damage
-      // from earlier away-mode bugs that dropped tasks), backfill from the
-      // default template. Idempotent — once a day has any task, untouched.
-      const existingByDay = {};
-      snap.docs.forEach(d => {
-        const t = d.data();
-        existingByDay[t.day] = (existingByDay[t.day] || 0) + 1;
-      });
-      const missing = DAYS.filter(d => !existingByDay[d]);
-      if (missing.length) {
-        const template = buildWeekTasks(NA, NB, rotationSide());
-        const fillBatch = writeBatch(db);
-        let added = 0;
-        template.forEach(t => {
-          if (!missing.includes(t.day)) return;
-          const r = doc(collection(db, `households/${HID}/tasks`));
-          fillBatch.set(r, { ...t, id: r.id, weekYear: week });
-          added++;
-        });
-        if (added) {
-          document.getElementById("loading-sub").textContent = `Restoring ${missing.join(", ")}...`;
-          await fillBatch.commit();
-        }
-      }
     }
     setSyncStatus("live", "Live ✓");
   } catch(e) {
@@ -812,6 +800,125 @@ function wireStatic() {
     if (!confirm("Clear all vacation days for this week?")) return;
     await updateDoc(doc(db, "households", HID), { [`vacationDays_${week}`]: [] });
     schedDropdown.classList.remove("open");
+  });
+
+  // ── One-off recovery widget ─────────────────────────────────────────────────
+  const recoverToggle = document.getElementById("sched-recover-toggle");
+  const recoverPanel  = document.getElementById("sched-recover-panel");
+  const recoverOut    = document.getElementById("recover-preview-out");
+  const recoverApply  = document.getElementById("recover-apply-btn");
+  let recoveryPlan = null; // populated by Preview, consumed by Apply
+
+  recoverToggle.addEventListener("click", e => {
+    e.stopPropagation();
+    const open = recoverPanel.style.display === "block";
+    recoverPanel.style.display = open ? "none" : "block";
+    if (!open) {
+      // Default the source field to the prior week.
+      const inp = document.getElementById("recover-source");
+      if (!inp.value) inp.value = prevWeekYear();
+      recoverOut.innerHTML = "";
+      recoverApply.style.display = "none";
+      recoveryPlan = null;
+    }
+  });
+
+  document.getElementById("recover-preview-btn").addEventListener("click", async e => {
+    e.stopPropagation();
+    const sourceWeek = document.getElementById("recover-source").value.trim();
+    const flip = document.getElementById("recover-flip").checked;
+    if (!sourceWeek) { recoverOut.textContent = "Enter a source week."; return; }
+    recoverOut.textContent = "Loading...";
+    try {
+      const [srcSnap, tgtSnap] = await Promise.all([
+        getDocs(query(collection(db, `households/${HID}/tasks`), where("weekYear","==",sourceWeek))),
+        getDocs(query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week))),
+      ]);
+      const srcTasks = srcSnap.docs.map(d => d.data()).filter(t => !t.carriedOver);
+      const tgtCount = tgtSnap.size;
+      if (!srcTasks.length) {
+        recoverOut.innerHTML = `<span style="color:var(--red)">No non-carryover tasks found in ${sourceWeek}.</span>`;
+        recoverApply.style.display = "none";
+        recoveryPlan = null;
+        return;
+      }
+      // Group by day for display.
+      const byDay = {};
+      srcTasks.forEach(t => { (byDay[t.day] = byDay[t.day] || []).push(t); });
+      const summary = DAYS.map(day => {
+        const dt = byDay[day] || [];
+        if (!dt.length) return `<div style="color:var(--ink-muted)">${day}: —</div>`;
+        return `<div><strong>${day}</strong> (${dt.length})<ul style="margin:2px 0 4px 14px;padding:0">${
+          dt.map(t => `<li>${t.title} · ${flip ? flipName(t.who||t.assignee) : (t.who||t.assignee)}</li>`).join("")
+        }</ul></div>`;
+      }).join("");
+      recoverOut.innerHTML =
+        `<div style="margin-bottom:6px"><strong>From ${sourceWeek}:</strong> ${srcTasks.length} task${srcTasks.length===1?"":"s"}` +
+        (tgtCount ? `<br><strong style="color:var(--red)">Will delete ${tgtCount} existing task${tgtCount===1?"":"s"}</strong> in current week (${week}).` : `<br>Current week (${week}) is empty.`) +
+        `</div>${summary}`;
+      recoveryPlan = { sourceWeek, srcTasks, flip };
+      recoverApply.style.display = "block";
+    } catch (err) {
+      console.error(err);
+      recoverOut.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    }
+  });
+
+  function flipName(who) {
+    if (who === NA) return NB;
+    if (who === NB) return NA;
+    return "Both";
+  }
+
+  recoverApply.addEventListener("click", async e => {
+    e.stopPropagation();
+    if (!recoveryPlan) return;
+    const { sourceWeek, srcTasks, flip } = recoveryPlan;
+    const msg = `This will DELETE all current week (${week}) tasks and replace them with ${srcTasks.length} tasks from ${sourceWeek}` +
+                (flip ? " (with assignees flipped)" : "") + ".\n\nContinue?";
+    if (!confirm(msg)) return;
+    recoverApply.disabled = true;
+    recoverApply.textContent = "Working...";
+    try {
+      // Delete all current week tasks.
+      const tgtSnap = await getDocs(query(collection(db, `households/${HID}/tasks`), where("weekYear","==",week)));
+      const batch = writeBatch(db);
+      tgtSnap.docs.forEach(d => batch.delete(d.ref));
+      // Clone source tasks into current week.
+      srcTasks.forEach(t => {
+        const oldWho = t.who || t.assignee || "Both";
+        const newWho = flip ? flipName(oldWho) : oldWho;
+        const r = doc(collection(db, `households/${HID}/tasks`));
+        const nt = { ...t };
+        delete nt.id;
+        batch.set(r, {
+          ...nt,
+          id: r.id,
+          weekYear: week,
+          status: "pending",
+          carriedOver: false,
+          who: newWho,
+          assignee: newWho,
+          notes: "",
+        });
+      });
+      await batch.commit();
+      recoverApply.textContent = "Done ✓";
+      setTimeout(() => {
+        recoverPanel.style.display = "none";
+        schedDropdown.classList.remove("open");
+        recoverApply.disabled = false;
+        recoverApply.textContent = "Wipe current week & re-seed";
+        recoverApply.style.display = "none";
+        recoverOut.innerHTML = "";
+        recoveryPlan = null;
+      }, 800);
+    } catch (err) {
+      console.error(err);
+      recoverApply.disabled = false;
+      recoverApply.textContent = "Wipe current week & re-seed";
+      recoverOut.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    }
   });
 
   // ── Grocery three-dot menu ──────────────────────────────────────────────────
